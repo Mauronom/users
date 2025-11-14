@@ -8,7 +8,8 @@
 **Aplicació**
 
     On s'implementen els casos d'ús: CrearUsuari, ObtenirUsuaris, ...
+    Gestionar errors i publicar events
 
 **Domini**
 
-    On hi ha les entitats i la lògica de negoci
+    On hi ha les entitats i la lògica de negoci. També les interfaces
