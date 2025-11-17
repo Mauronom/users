@@ -4,3 +4,6 @@ class User:
         self.username = name
         self.email = email
         self.dni = dni
+
+    def clone(u):
+        return User(u.uuid,u.username,u.email,u.dni)

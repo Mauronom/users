@@ -1,10 +1,14 @@
-class MemoryUsersRepo:
+from domain import UsersRepo
+
+class MemoryUsersRepo(UsersRepo):
     def __init__(self, init_users):
         self.users = init_users
 
-    def addUser(self, user):
-        self.users.append(user)
+    def save(self, user):
+        self.users.append(user.clone())
 
     def find_all(self):
-        ret = self.users.copy()
-        return ret
+        res = []
+        for u in self.users:
+            res.append(u.clone())
+        return res

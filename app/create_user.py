@@ -1,4 +1,4 @@
-from .user import User
+from domain import User
 
 
 class CreateUser:
@@ -7,4 +7,4 @@ class CreateUser:
 
     def execute(self, uuid, username, email, dni):
         user = User(uuid, username, email, dni)
-        self.user_repo.addUser(user)
+        self.user_repo.save(user)
