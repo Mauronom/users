@@ -5,5 +5,5 @@ class QueryBus:
     def subscribe(self, query_class, handler):
         self.handlers[query_class.q_name] = handler
 
-    def dispatch(self, q):
-        return self.handlers[q.q_name].execute()
+    def dispatch(self, q_name):
+        return self.handlers[q_name].execute()

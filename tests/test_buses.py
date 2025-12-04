@@ -10,6 +10,6 @@ def test_buses_1():
     q_bus = QueryBus()
     q_bus.subscribe(GetUsers,h)
     
-    users = q_bus.dispatch(q)
+    users = q_bus.dispatch(q.q_name)
     assert len(users) == 1
     assert users[0] == u
