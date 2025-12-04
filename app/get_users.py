@@ -1,10 +1,7 @@
-from domain import User
-from domain import UsernameAlreadyExists
-from domain import EmailAlreadyExists
-from domain import DNIAlreadyExists
-
-
 class GetUsers:
+    q_name='get.users'
+
+class GetUsersHandler:
     def __init__(self, init_user_repo):
         self.user_repo = init_user_repo
 
