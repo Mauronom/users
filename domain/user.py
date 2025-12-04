@@ -14,3 +14,6 @@ class User:
 
     def clone(u):
         return User(u.uuid, u.username, u.email, u.dni)
+    
+    def __eq__(self, u):
+        return self.uuid == u.uuid
