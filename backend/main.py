@@ -13,7 +13,7 @@ u = User('1', 'u1', 'u1@test.com', '12345678A')
 repo_user = MemoryUsersRepo([u])
 h = GetUsersHandler(repo_user)
 q = GetUsers()
-q_bus.subscribe(GetUsers,h)
+q_bus.subscribe(GetUsers, h)
     
 @app.get("/query/{q_name}")
 def read_root(q_name):
