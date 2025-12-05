@@ -5,10 +5,20 @@ from domain import DNIAlreadyExists
 
 
 class CreateUser:
+       c_name = "create.user"
+
+
+class CreateUserHandler:
     def __init__(self, init_user_repo):
         self.user_repo = init_user_repo
 
-    def execute(self, uuid, username, email, dni):
+    def execute(self, user_info):
+
+        uuid = user_info["uuid"]
+        username = user_info["username"]
+        email = user_info["email"]
+        dni = user_info["dni"]
+        
         user = User(uuid, username, email, dni)
 
         # Check username duplicates
@@ -27,3 +37,5 @@ class CreateUser:
             raise DNIAlreadyExists()
 
         self.user_repo.save(user)
+
+        return "ok"
