@@ -1,0 +1,16 @@
+##[pylyzer] failed /home/jaume/users/backend/domain/user.py 1764968993 545
+.___v_desugar_1 = pyimport "exceptions"
+.exceptions = pyimport "exceptions"
+.InvalidDNI: {exceptions.InvalidDNI}
+.User: ClassType
+.User.username: Never
+.User.uuid: Never
+.User.dni: Never
+.User.email: Never
+.User.__call__: (uuid: Obj := Obj, username: Obj := Obj, email: Obj := Obj, dni: Obj := Obj) -> user.User
+.User.clone: |Type_224: Type, Type_220: Type, Type_227 <: Structural({.username = Type_222; .uuid = Type_220; .dni = Type_226; .email = Type_224}), Type_226: Type, Type_222: Type|(u: Type_227) -> user.User
+.User.__eq__: |E: Type, Type_230 <: Structural({.uuid = E})|(self: user.User, u: Type_230) -> Bool
+.User.__str__: (self: user.User) -> Str
+
+Str
+

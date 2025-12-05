@@ -1,5 +1,5 @@
-from app import GetUsers, GetUsersHandler, CreateUser
-from infra import MemoryUsersRepo, QueryBus
+from app import GetUsers, GetUsersHandler, CreateUser, CreateUserHandler
+from infra import MemoryUsersRepo, QueryBus, CommandBus
 from domain import User
 
 def test_buses_1():
@@ -21,14 +21,13 @@ def test_buses_2():
     c = CreateUser(repo_user)
     c_bus = CommandBus()
     c_bus.subscribe(CreateUser, h)
-    opts = {
-        "uuid": "1",
+    user_info = {
         "username": "u1",
         "email": "u1@test.com",
         "dni": "12345678A"
     }
 
-    ok = c_bus.dispatch(c.c_name,)
+    ok = c_bus.dispatch(c.c_name,user_info)
     users = repo_user.find_all()
     assert len(users) == 1
     assert users[0] == u
