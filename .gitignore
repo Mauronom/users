@@ -2,3 +2,4 @@ frontend/node_modules/*
 package-lock.json
 *.pyc
 info/
+__pycache__/*
