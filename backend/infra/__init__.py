@@ -1,2 +1,2 @@
 from .repos import MemoryUsersRepo
-from .buses import QueryBus
+from .buses import QueryBus, CommandBus

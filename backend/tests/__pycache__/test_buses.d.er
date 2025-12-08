@@ -1,0 +1,12 @@
+##[pylyzer] failed /home/jaume/users/backend/tests/test_buses.py 1764969167 907
+.___v_desugar_1: Never
+.GetUsers: Never
+.GetUsersHandler: Never
+.CreateUser: Never
+.___v_desugar_2: Never
+.MemoryUsersRepo: Never
+.QueryBus: Never
+.___v_desugar_3: Never
+.User: Never
+.test_buses_1: () -> NoneType
+.test_buses_2: () -> NoneType

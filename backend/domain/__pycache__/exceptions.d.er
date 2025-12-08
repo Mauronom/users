@@ -1,0 +1,13 @@
+##[pylyzer] succeed /home/jaume/users/backend/domain/exceptions.py 1764968993 179
+.UsernameAlreadyExists: ClassType
+.UsernameAlreadyExists <: global::Exception
+
+.EmailAlreadyExists: ClassType
+.EmailAlreadyExists <: global::Exception
+
+.DNIAlreadyExists: ClassType
+.DNIAlreadyExists <: global::Exception
+
+.InvalidDNI: ClassType
+.InvalidDNI <: global::Exception
+
