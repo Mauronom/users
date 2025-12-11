@@ -1,6 +1,6 @@
 import { MemoryUserRepo } from '../infra/repos'
 import { CreateUser } from '../app/create_user'
-import { User } from '../app/user'
+import { User } from '../domain/user'
 
 describe('Create User Tests', () => {
     it('test 1',() => {
