@@ -10,4 +10,7 @@ export class CreateUser {
         let dni = screen_data["dni"];
         this.user = new User(username, email, dni);
     }
+    execute(){
+
+    }
 }
