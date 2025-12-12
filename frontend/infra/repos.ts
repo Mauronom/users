@@ -21,8 +21,14 @@ export class MemoryUserRepo implements UserRepo {
         });
     }
 
-    save(passed_user: User): void {
+    create(passed_user: User): void {
         let user = passed_user.clone();
+        if(user.uuid in this.users_uuid_dict ||
+            user.username in this.users_username_dict ||
+            user.email in this.users_email_dict ||
+            user.dni in this.users_dni_dict){
+            throw new Error('AlreadyExists')
+        }
         this.users_uuid_dict[user.uuid] = user;
         this.users_username_dict[user.username] = user;
         this.users_email_dict[user.email] = user;
