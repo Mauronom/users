@@ -12,5 +12,16 @@ export class MemoryUserRepo implements UserRepo {
     }
 
     save(user: User): void {
+        this.users[user.uuid] = user.clone();
+    }
+
+    find_all(): Array<User> {
+        let res = new Array;
+        let users_array = Object.values(this.users);
+        for ( const user of users_array){
+            res.push(user.clone());
+        }
+        return res;
+        
     }
 }

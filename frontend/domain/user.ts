@@ -1,3 +1,4 @@
+
 export class User {
     uuid: string;
     username: string;
@@ -8,5 +9,8 @@ export class User {
         this.username = username;
         this.email = email;
         this.dni = dni;
+    }
+    clone() {
+         return new User(this.uuid, this.username, this.email, this.dni);
     }
 }

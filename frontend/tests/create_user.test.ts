@@ -22,7 +22,7 @@ describe('Create User Tests', () => {
     })
     it('test 2',() => {
         let screen_data = {username:'user1',email:'user@test.com',dni:'12345678A', result:''}
-        let user_repo = new MemoryUserRepo([new User('user1','user@test.com','12345678A')])
+        let user_repo = new MemoryUserRepo([new User('uuid','user1','user@test.com','12345678A')])
         let cmd = new CreateUser(user_repo, screen_data)
         cmd.execute()
         expect(screen_data.result).toBe("l'usuari user1 ja existeix")
