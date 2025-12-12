@@ -19,11 +19,18 @@ export class CreateUser {
     }
     execute() {
 
+        //check email validity
         if(!isValidEmail(this.user.email)){
-            console.log("dffafs");
             this.screen_data["result"] = "Email incorrecte";
             return;
         }
+
+        let duplicate = this.user_repo.find_by_field("username", this.screen_data["username"]);
+        if(duplicate){
+            this.screen_data["result"]=`l'usuari ${this.screen_data["username"]} ja existeix`;
+            return;
+        }
+
 
         this.user_repo.save(this.user);
         this.screen_data["result"] = `L'usuari ${this.user.username} s'ha creat correctament`

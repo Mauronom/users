@@ -39,3 +39,8 @@ users = user_repo.find_all();
 console.log(users.length);
 console.log(screen_data.result);
 
+console.log("provant regex");
+console.log("--------------------------------------------");
+let jaume = "jaume";
+let ok = /jaume/.test(jaume);
+console.log(ok);
