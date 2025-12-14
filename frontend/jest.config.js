@@ -1,8 +1,10 @@
 module.exports = {
-    preset: 'ts-jest',
-    testEnvironment: 'node',
-    transform: {
-      '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }],
-    },
-  };
-  
+  testEnvironment: 'jsdom',
+  transform: {
+    '^.+\\.(ts|js)$': 'babel-jest',
+  //  '^.+\\.vue$': '@vue/vue2-jest',
+  },
+  moduleFileExtensions: ['ts', 'js', 'vue'],
+  testMatch: ['**/*.test.ts'],
+  modulePathIgnorePatterns: ['dist', 'node_modules'],
+}
