@@ -15,5 +15,5 @@
       "@infra/*": ["infra/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.vue"]
+  "include": ["./**/*.ts", "./**/*.vue"]
 }
