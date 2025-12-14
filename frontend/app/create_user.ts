@@ -27,13 +27,6 @@ export class CreateUser {
             }
             return
         }
-            
-
-        let duplicate = this.user_repo.find_by_field("username", this.screen_data["username"]);
-        if(duplicate){
-            this.screen_data["result"]=`l'usuari ${this.screen_data["username"]} ja existeix`;
-            return;
-        }
 
         try{
             this.user_repo.create(user);
