@@ -1,12 +1,19 @@
 {
-    "compilerOptions": {
-      "module": "commonjs",
-      "target": "ES2019",
-      "strict": true,
-      "esModuleInterop": true,
-      "moduleResolution": "node",
-      "resolveJsonModule": true,
-      "skipLibCheck": true
+  "compilerOptions": {
+    "target": "es2019",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "jsx": "preserve",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@domain/*": ["domain/*"],
+      "@app/*": ["app/*"],
+      "@infra/*": ["infra/*"]
     }
+  },
+  "include": ["src/**/*.ts", "src/**/*.vue"]
 }
-  
