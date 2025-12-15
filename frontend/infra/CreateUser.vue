@@ -8,9 +8,11 @@
   
       <!-- Botó que crida un mètode -->
       <button @click="incrementCounter">Incrementa</button>
-  
+      {{ screen_data }}
+      <input v-model="screen_data.username" />
       <!-- Mostrem un valor computat -->
       <p>{{ counterMessage }}</p>
+      {{ screen_data.result }}
     </div>
   </template>
   
@@ -24,9 +26,11 @@
     // Dades reactives del component
     // ----------------------------------
     data() {
-      return {
+       return {
         title: 'Hola, Vue 2 amb TypeScript!',
         counter: 0, // valor inicial del comptador
+        screen_data: {username:''},
+        cmd:undefined
       }
     },
   
@@ -48,6 +52,7 @@
       // Incrementa el comptador
       incrementCounter() {
         this.counter += 1
+        this.title='hola'
       },
     },
   

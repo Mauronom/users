@@ -1,6 +1,6 @@
 <template>
     <div id="app">
-      <h1>Hola, Vue 2 amb TypeScript!</h1>
+      <h1>Usuaris</h1>
       <CreateUser />
     </div>
   </template>
