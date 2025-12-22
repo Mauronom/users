@@ -23,11 +23,19 @@ export class MemoryUserRepo implements UserRepo {
 
     create(passed_user: User): void {
         let user = passed_user.clone();
-        if(user.uuid in this.users_uuid_dict ||
-            user.username in this.users_username_dict ||
-            user.email in this.users_email_dict ||
-            user.dni in this.users_dni_dict){
-            throw new Error('AlreadyExists')
+        if (user.uuid in this.users_uuid_dict) {
+            throw new Error("UuidClash");
+        }
+        if (user.username in this.users_username_dict) {
+            throw new Error("UsernameExists");
+
+        }
+        if (user.email in this.users_email_dict) {
+            throw new Error("EmailExists");
+
+        }
+        if (user.dni in this.users_dni_dict) {
+            throw new Error('DniExists')
         }
         this.users_uuid_dict[user.uuid] = user;
         this.users_username_dict[user.username] = user;
@@ -45,8 +53,8 @@ export class MemoryUserRepo implements UserRepo {
 
     }
 
-    find_by_field(field: string, value: string) : User{
-        switch(field){
+    find_by_field(field: string, value: string): User {
+        switch (field) {
             case "uuid":
                 return this.users_uuid_dict[value];
             case "username":
