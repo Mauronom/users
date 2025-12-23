@@ -6,18 +6,19 @@
       <label>Nom d'usuari:</label><input v-model="screen_data.username"></input>
       <label>Correu electrònic:</label><input v-model="screen_data.email"></input>
       <label>DNI:</label><input v-model="screen_data.dni"></input>
-      <p :style="{color: messageColor}">{{ createUserMessage}}</p>
+      <p :style="{color: screen_data.message_color}">{{ screen_data.result}}</p>
       <button @click="createUser">Crea l'Usuari</button>
 
     </div>
     <button @click="showUsers">Mostra els usuaris creats</button>
-    <p>{{ usersList }}</p>
+    <p>{{ screen_data.users_list }}</p>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 import { CreateUser } from "../app/create_user"
+import { GetUsers } from "../app/get_users"
 import { MemoryUserRepo } from "./repos"
 import { v4 as uuid_gen } from 'uuid';
 
@@ -29,13 +30,14 @@ export default Vue.extend({
   // Dades reactives del component
   // ----------------------------------
   data() {
-    const screen_data = { username: "", email: "", dni: "" ,result: "Crea Usuari"};
+    const screen_data = { username: "", email: "", dni: "" ,result: "Crea Usuari", message_color:'black',users_list:''};
     const repo = new MemoryUserRepo([]);
     return {
       title: 'Crea un Usuari',
       counter: 0,
       screen_data,
       cmd: new CreateUser(repo, screen_data, uuid_gen),
+      query: new GetUsers(repo, screen_data),
       usersList: "",
     }
   },
@@ -44,21 +46,7 @@ export default Vue.extend({
   // Computed properties: recalculades automàticament quan les dades canvien
   // ----------------------------------
   computed: {
-    counterMessage(): string {
-      return this.counter > 0
-        ? `Has incrementat el comptador ${this.counter} vegades`
-        : 'Encara no has clicat el botó'
-    },
-    createUserMessage(): string {
-      return this.screen_data.result;
-    },
-    messageColor(){
-      if(this.cmd.error){
-        return "red";
-      }else{
-        return "black";
-      }
-    }
+    
   },
 
   // ----------------------------------
@@ -67,16 +55,7 @@ export default Vue.extend({
   methods: {
     // Incrementa el comptador
     showUsers() {
-      let msg ="";
-      let users = this.cmd.user_repo.find_all();
-      for(let i=0;i<users.length;i++){
-        if(msg != ""){
-          msg += ", ";
-        }
-        msg += users[i].username;
-      }
-      this.usersList = msg;
-
+      this.query.execute()
     },
     createUser() {
       this.cmd.execute();
@@ -94,7 +73,6 @@ export default Vue.extend({
 
   // Executat **després que el component s’hagi muntat al DOM**
   mounted() {
-    console.log('Component muntat al DOM! Aquí podem manipular elements del DOM o cridar APIs')
   },
 })
 </script>
