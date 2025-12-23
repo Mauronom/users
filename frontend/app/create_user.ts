@@ -28,7 +28,7 @@ export class CreateUser {
                 this.screen_data["result"] = "Error creant usuari";
             }
             this.error = true;
-            this.screen_data['message_color'] = 'red'
+            this.screen_data['message_color'] = 'error-color'
             return
         }
 
@@ -46,12 +46,12 @@ export class CreateUser {
             } else {
                 this.screen_data["result"] = "Error creant usuari";
             }
-            this.screen_data['message_color'] = 'red'
+            this.screen_data['message_color'] = 'error-color'
             this.error = true;
             return;
 
         }
-        this.screen_data['message_color'] = 'black'
+        this.screen_data['message_color'] = 'default-color'
         this.error = false;
         this.screen_data["result"] = `L'usuari ${user.username} s'ha creat correctament`
     }
