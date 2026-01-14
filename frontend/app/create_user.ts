@@ -12,7 +12,7 @@ export class CreateUser {
         this.uuid_gen = uuid_gen
         this.error = false;
     }
-    execute() {
+    async execute(): Promise<void> {
 
         let uuid = this.uuid_gen();
         let username = this.screen_data["username"];
@@ -33,7 +33,7 @@ export class CreateUser {
         }
 
         try {
-            this.user_repo.create(user);
+            await this.user_repo.create(user);
         } catch (e: any) {
             if (e.message == 'UsernameExists') {
                 this.screen_data["result"] = `l'usuari ${this.screen_data["username"]} ja existeix`;

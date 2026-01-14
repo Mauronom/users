@@ -11,9 +11,9 @@ export class GetUsers {
         this.screen_data = screen_data
     }
 
-    execute(){
+    async execute(): Promise<Array<User>>{
         this.screen_data.users_list = ''
-        let users = this.user_repo.find_all();
+        let users = await this.user_repo.find_all();
         for(let i=0;i<users.length;i++){
         if(this.screen_data.users_list != ""){
             this.screen_data.users_list += ", ";

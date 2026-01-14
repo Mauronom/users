@@ -21,7 +21,7 @@ export class MemoryUserRepo implements UserRepo {
         });
     }
 
-    create(passed_user: User): void {
+    async create(passed_user: User): Promise<void> {
         let user = passed_user.clone();
         if (user.uuid in this.users_uuid_dict) {
             throw new Error("UuidClash");
@@ -43,7 +43,7 @@ export class MemoryUserRepo implements UserRepo {
         this.users_dni_dict[user.dni] = user;
     }
 
-    find_all(): Array<User> {
+    async find_all(): Promise<Array<User>> {
         let res = new Array;
         let users_array = Object.values(this.users_uuid_dict);
         for (const user of users_array) {
@@ -53,7 +53,7 @@ export class MemoryUserRepo implements UserRepo {
 
     }
 
-    find_by_field(field: string, value: string): User {
+    async find_by_field(field: string, value: string): Promise<User> {
         switch (field) {
             case "uuid":
                 return this.users_uuid_dict[value];
