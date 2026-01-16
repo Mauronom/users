@@ -27,7 +27,6 @@ q_bus.subscribe(GetUsers, h)
     
 @app.get("/query/{q_name}")
 def read_root(q_name):
-    print('hoooooloaaaaa')
     try:
         return [e.to_primitive() for e in q_bus.dispatch(q_name)]
     except:
