@@ -19,7 +19,7 @@
 import Vue from 'vue'
 import { CreateUser } from "../app/create_user"
 import { GetUsers } from "../app/get_users"
-import { MemoryUserRepo } from "./repos"
+import { APIUserRepo } from "./repos"
 import { v4 as uuid_gen } from 'uuid';
 
 
@@ -31,7 +31,7 @@ export default Vue.extend({
     // ----------------------------------
     data() {
         const screen_data = { username: "", email: "", dni: "", result: "Crea Usuari", message_color: 'black', users_list: '' };
-        const repo = new MemoryUserRepo([]);
+        const repo = new APIUserRepo('http://0.0.0.0:8000');
         return {
             title: 'Crea un Usuari',
             counter: 0,

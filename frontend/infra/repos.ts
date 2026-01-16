@@ -53,20 +53,67 @@ export class MemoryUserRepo implements UserRepo {
 
     }
 
-    async find_by_field(field: string, value: string): Promise<User> {
-        switch (field) {
-            case "uuid":
-                return this.users_uuid_dict[value];
-            case "username":
-                return this.users_username_dict[value];
-            case "email":
-                return this.users_email_dict[value];
-            case "dni":
-                return this.users_dni_dict[value];
-            default:
-                throw new Error("field not valid");
+}
+
+
+export class APIUserRepo implements UserRepo {
+
+    constructor(
+        private readonly baseUrl: string
+    ) {}
+
+    /* =======================
+       COMMANDS
+    ======================== */
+
+    async create(passed_user: User): Promise<void> {
+        const response = await fetch(
+            `${this.baseUrl}/command/create.user`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    uuid: passed_user.uuid,
+                    username: passed_user.username,
+                    email: passed_user.email,
+                    dni: passed_user.dni
+                })
+            }
+        )
+
+        if (!response.ok) {
+            const errorText = await response.text()
+            throw new Error(errorText)
+        }
+    }
+
+    async find_all(): Promise<Array<User>> {
+        const response = await fetch(
+            `${this.baseUrl}/query/get.users`
+        )
+
+        if (!response.ok) {
+            throw new Error('QueryError')
         }
 
+        const data: string[] = await response.json()
 
+        return data.map(this.parseUserString)
     }
+
+    
+    private parseUserString(userStr: string): User {
+        // Ex: "User(uuid=1, username=u1, email=u1@test.com, dni=12345678A)"
+        const regex =
+            /uuid=(.*?), username=(.*?), email=(.*?), dni=(.*?)\)/
+        const match = userStr.match(regex)
+
+        if (!match) {
+            throw new Error('InvalidUserFormat')
+        }
+
+        const [, uuid, username, email, dni] = match
+        return new User(uuid, username, email, dni)
+    }
+
 }
