@@ -29,9 +29,7 @@ q_bus.subscribe(GetUsers, h)
 def read_root(q_name):
     print('hoooooloaaaaa')
     try:
-        print([str(e) for e in q_bus.dispatch(q_name)])
-        return [{'a':3}]
-        return [str(e) for e in q_bus.dispatch(q_name)]
+        return [e.to_primitive() for e in q_bus.dispatch(q_name)]
     except:
         import traceback; traceback.print_exc()
 

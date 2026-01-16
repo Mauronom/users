@@ -20,3 +20,9 @@ class User:
     
     def __str__(self,):
         return f"{self.uuid}-{self.username}-{self.email}-{self.dni}"
+    
+    def to_primitive(self):
+        return {'uuid':self.uuid,
+                'username': self.username,
+                'email': self.email,
+                'dni':self.dni}

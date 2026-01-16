@@ -98,22 +98,12 @@ export class APIUserRepo implements UserRepo {
 
         const data: string[] = await response.json()
 
-        return data.map(this.parseUserString)
+        return data.map(this.parseUserToDomain)
     }
 
     
-    private parseUserString(userStr: string): User {
-        // Ex: "User(uuid=1, username=u1, email=u1@test.com, dni=12345678A)"
-        const regex =
-            /uuid=(.*?), username=(.*?), email=(.*?), dni=(.*?)\)/
-        const match = userStr.match(regex)
-
-        if (!match) {
-            throw new Error('InvalidUserFormat')
-        }
-
-        const [, uuid, username, email, dni] = match
-        return new User(uuid, username, email, dni)
+    private parseUserToDomain(prim:any): User {
+        return new User(prim.uuid, prim.username, prim.email, prim.dni)
     }
 
 }
