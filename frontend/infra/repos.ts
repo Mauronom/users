@@ -82,7 +82,8 @@ export class APIUserRepo implements UserRepo {
         )
 
         if (!response.ok) {
-            const errorText = await response.text()
+            const error = await response.json();
+            const errorText = error.detail;
             throw new Error(errorText)
         }
     }

@@ -25,7 +25,7 @@ export class CreateUser {
             if (e.message == 'InvalidEmail') {
                 this.screen_data["result"] = "Email incorrecte";
             } else {
-                this.screen_data["result"] = "Error creant usuari";
+                this.screen_data["result"] = e.message;
             }
             this.error = true;
             this.screen_data['message_color'] = 'error-color'
@@ -44,7 +44,7 @@ export class CreateUser {
             else if (e.message == 'DniExists') {
                 this.screen_data["result"] = `El DNI ${this.screen_data["dni"]} ja existeix`;
             } else {
-                this.screen_data["result"] = "Error creant usuari";
+                this.screen_data["result"] = e.message;
             }
             this.screen_data['message_color'] = 'error-color'
             this.error = true;
