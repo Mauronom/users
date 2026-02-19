@@ -3,3 +3,4 @@ package-lock.json
 *.pyc
 info/
 __pycache__/*
+backend/staticfiles/*
