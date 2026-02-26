@@ -1,3 +1,4 @@
 #fastapi[standard]==0.123.2
 Django>=4.2
+django-cors-headers
 psycopg2-binary
