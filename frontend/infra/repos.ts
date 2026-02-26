@@ -68,7 +68,7 @@ export class APIUserRepo implements UserRepo {
 
     async create(passed_user: User): Promise<void> {
         const response = await fetch(
-            `${this.baseUrl}/command/create.user`,
+            `${this.baseUrl}/command/create.user/`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -90,7 +90,7 @@ export class APIUserRepo implements UserRepo {
 
     async find_all(): Promise<Array<User>> {
         const response = await fetch(
-            `${this.baseUrl}/query/get.users`
+            `${this.baseUrl}/query/get.users/`
         )
 
         if (!response.ok) {

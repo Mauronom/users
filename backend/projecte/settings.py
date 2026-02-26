@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-k9+uey90a3&ppe=^$8!7f1)e&!b1-e)*=27l0f#=49-u5kf^o^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['0.0.0.0','localhost:8000']
 
 
 # Application definition
@@ -37,9 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -48,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'projecte.urls'
 
@@ -133,11 +136,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-from infra import QueryBus, CommandBus, init_buses
+from infra import QueryBus, CommandBus, init_buses, c_bus, q_bus
 
 
 print('inicialitzant busos...')
-q_bus = QueryBus()
-c_bus = CommandBus()
 init_buses(c_bus,q_bus)
 print('inicialitzant busos...fet')

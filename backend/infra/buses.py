@@ -34,3 +34,5 @@ def init_buses(cmd_bus,q_bus):
     h = GetUsersHandler(repo_user)
     q_bus.subscribe(GetUsers, h)
 
+q_bus = QueryBus()
+c_bus = CommandBus()
