@@ -130,3 +130,14 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+from infra import QueryBus, CommandBus, init_buses
+
+
+print('inicialitzant busos...')
+q_bus = QueryBus()
+c_bus = CommandBus()
+init_buses(c_bus,q_bus)
+print('inicialitzant busos...fet')
