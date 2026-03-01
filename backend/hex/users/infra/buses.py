@@ -20,14 +20,15 @@ class CommandBus:
         return self.handlers[c_name].execute(c_info)
 
 def init_buses(cmd_bus,q_bus):
-    from hex.users.infra import MemoryUsersRepo
+    from hex.users.infra import DjangoUsersRepo
     from hex.users.domain import User
     from hex.users.app import CreateUser, CreateUserHandler
     from hex.users.app import GetUsers, GetUsersHandler
     from hex.users.domain import User
 
-    u = User('1', 'u1', 'u1@test.com', '12345678A')
-    repo_user = MemoryUsersRepo([u])
+    # u = User('1', 'u1', 'u1@test.com', '12345678A')
+    # repo_user = MemoryUsersRepo([u])
+    repo_user = DjangoUsersRepo()
     command_h = CreateUserHandler(repo_user)
     cmd_bus.subscribe(CreateUser, command_h)
 
