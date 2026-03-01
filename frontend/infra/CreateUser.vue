@@ -11,7 +11,9 @@
 
         </div>
         <button @click="showUsers">Mostra els usuaris creats</button>
-        <p>{{ screen_data.users_list }}</p>
+        <div v-for="u in screen_data.users_list.split(',')" :key="u">  
+            <button>{{u}}</button>
+        </div>
     </div>
 </template>
 
