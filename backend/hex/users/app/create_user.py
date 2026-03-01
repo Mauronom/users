@@ -1,7 +1,7 @@
-from domain import User
-from domain import UsernameAlreadyExists
-from domain import EmailAlreadyExists
-from domain import DNIAlreadyExists
+from hex.users.domain import User
+from hex.users.domain import UsernameAlreadyExists
+from hex.users.domain import EmailAlreadyExists
+from hex.users.domain import DNIAlreadyExists
 
 
 class CreateUser:

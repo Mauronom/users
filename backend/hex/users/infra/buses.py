@@ -20,11 +20,11 @@ class CommandBus:
         return self.handlers[c_name].execute(c_info)
 
 def init_buses(cmd_bus,q_bus):
-    from infra import MemoryUsersRepo
-    from domain import User
-    from app import CreateUser, CreateUserHandler
-    from app import GetUsers, GetUsersHandler
-    from domain import User
+    from hex.users.infra import MemoryUsersRepo
+    from hex.users.domain import User
+    from hex.users.app import CreateUser, CreateUserHandler
+    from hex.users.app import GetUsers, GetUsersHandler
+    from hex.users.domain import User
 
     u = User('1', 'u1', 'u1@test.com', '12345678A')
     repo_user = MemoryUsersRepo([u])

@@ -1,4 +1,4 @@
-from domain import UsersRepo
+from hex.users.domain import UsersRepo
 
 
 class MemoryUsersRepo(UsersRepo):

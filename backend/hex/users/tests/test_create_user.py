@@ -1,10 +1,10 @@
-from infra import MemoryUsersRepo, CommandBus
-from app import CreateUser, CreateUserHandler
-from domain import User
-from domain import UsernameAlreadyExists
-from domain import EmailAlreadyExists
-from domain import DNIAlreadyExists
-from domain import InvalidDNI
+from hex.users.infra import MemoryUsersRepo, CommandBus
+from hex.users.app import CreateUser, CreateUserHandler
+from hex.users.domain import User
+from hex.users.domain import UsernameAlreadyExists
+from hex.users.domain import EmailAlreadyExists
+from hex.users.domain import DNIAlreadyExists
+from hex.users.domain import InvalidDNI
 
 
 def test_create_user_1():

@@ -136,7 +136,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-from infra import QueryBus, CommandBus, init_buses, c_bus, q_bus
+from hex.users.infra import QueryBus, CommandBus, init_buses, c_bus, q_bus
 
 
 print('inicialitzant busos...')

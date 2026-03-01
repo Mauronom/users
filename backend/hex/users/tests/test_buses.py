@@ -1,6 +1,6 @@
-from app import GetUsers, GetUsersHandler, CreateUser, CreateUserHandler
-from infra import MemoryUsersRepo, QueryBus, CommandBus
-from domain import User
+from hex.users.app import GetUsers, GetUsersHandler, CreateUser, CreateUserHandler
+from hex.users.infra import MemoryUsersRepo, QueryBus, CommandBus
+from hex.users.domain import User
 
 def test_buses_1():
     u = User('1', 'u1', 'u1@test.com', '12345678A')

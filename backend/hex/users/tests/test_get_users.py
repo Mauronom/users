@@ -1,7 +1,7 @@
-from infra import MemoryUsersRepo
-from app import GetUsers, GetUsersHandler
-from domain import User
-from infra import QueryBus
+from hex.users.infra import MemoryUsersRepo
+from hex.users.app import GetUsers, GetUsersHandler
+from hex.users.domain import User
+from hex.users.infra import QueryBus
 
 
 def test_get_users_1():

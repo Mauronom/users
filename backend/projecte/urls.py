@@ -24,7 +24,7 @@ from django.views.decorators.csrf import csrf_exempt
 def query_api(request, q_name):
     print(request.method)
     if request.method == "GET":
-        from infra import q_bus
+        from hex.users.infra import q_bus
         try:
             print([e.to_primitive() for e in q_bus.dispatch(q_name)])
             return JsonResponse([e.to_primitive() for e in q_bus.dispatch(q_name)],safe=False)
@@ -37,10 +37,10 @@ def query_api(request, q_name):
 def command_api(request, c_name):
     if request.method == "POST":
         import json
-        from infra import c_bus
-        from domain.exceptions import UsernameAlreadyExists
-        from domain.exceptions import EmailAlreadyExists
-        from domain.exceptions import DNIAlreadyExists
+        from hex.users.infra import c_bus
+        from hex.users.domain.exceptions import UsernameAlreadyExists
+        from hex.users.domain.exceptions import EmailAlreadyExists
+        from hex.users.domain.exceptions import DNIAlreadyExists
         try:
             body = request.body.decode("utf-8")
             c_info = json.loads(body) if body else {}
