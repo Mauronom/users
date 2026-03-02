@@ -39,7 +39,6 @@ class DjangoUsersRepo(UsersRepo):
             },
         )
 
-        return self._to_domain(django_user, profile)
 
     def find_all(self):
         from django.contrib.auth import get_user_model
