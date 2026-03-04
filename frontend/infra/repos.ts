@@ -53,6 +53,17 @@ export class MemoryUserRepo implements UserRepo {
 
     }
 
+    async find_by_username(username: string): Promise<User | null> {
+        let users_array = Object.values(this.users_uuid_dict);
+        for (const user of users_array) {
+            if (user.username = username) {
+                return user;
+            }
+        }
+        return null;
+
+    }
+
 }
 
 
@@ -60,7 +71,7 @@ export class APIUserRepo implements UserRepo {
 
     constructor(
         private readonly baseUrl: string
-    ) {}
+    ) { }
 
     /* =======================
        COMMANDS
@@ -102,8 +113,20 @@ export class APIUserRepo implements UserRepo {
         return data.map(this.parseUserToDomain)
     }
 
-    
-    private parseUserToDomain(prim:any): User {
+    async find_by_username(username:string): Promise<User | null> {
+        const response = await fetch(
+            `${this.baseUrl}/query/get.user.info/${username}/`)
+
+        if (!response.ok) {
+            throw new Error('QueryError')
+        }
+
+        const data:  any = await response.json()
+
+        return this.parseUserToDomain(data)
+    }
+
+    private parseUserToDomain(prim: any): User {
         return new User(prim.uuid, prim.username, prim.email, prim.dni)
     }
 
