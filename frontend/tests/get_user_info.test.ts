@@ -34,4 +34,5 @@ describe ('Get User Info Tests', ()=>{
         expect(screen_data.shown_user.user_info.dni).toBe('12345678A');
 
     });
+
 });

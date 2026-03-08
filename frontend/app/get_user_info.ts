@@ -25,6 +25,7 @@ export class GetUserInfo {
         this.screen_data.shown_user.user_info.username = user.username
         this.screen_data.shown_user.user_info.email = user.email
         this.screen_data.shown_user.user_info.dni = user.dni
+        this.screen_data.shown_user.user_info.error = ""
         return user;
     }
 

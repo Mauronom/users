@@ -41,6 +41,8 @@ export class MemoryUserRepo implements UserRepo {
         this.users_username_dict[user.username] = user;
         this.users_email_dict[user.email] = user;
         this.users_dni_dict[user.dni] = user;
+        console.log("User created successfully:")
+        console.log(user)
     }
 
     async find_all(): Promise<Array<User>> {
@@ -54,11 +56,15 @@ export class MemoryUserRepo implements UserRepo {
     }
 
     async find_by_username(username: string): Promise<User | null> {
-        let users_array = Object.values(this.users_uuid_dict);
-        for (const user of users_array) {
-            if (user.username = username) {
-                return user;
-            }
+
+        console.log("Username searched")
+        console.log(username)
+        console.log("Username dict")
+        console.log(this.users_username_dict)
+        console.log("user return")
+        console.log(this.users_username_dict[username])
+        if(this.users_username_dict[username]){
+            return this.users_username_dict[username]
         }
         return null;
 
