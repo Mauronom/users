@@ -10,7 +10,7 @@ def test_buses_1():
     q_bus = QueryBus()
     q_bus.subscribe(GetUsers, h)
 
-    users = q_bus.dispatch(q.q_name)
+    users = q_bus.dispatch(q)
     assert len(users) == 1
     assert users[0] == u
 
@@ -18,17 +18,11 @@ def test_buses_2():
     u = User('1', 'u1', 'u1@test.com', '12345678A')
     repo_user = MemoryUsersRepo([])
     h = CreateUserHandler(repo_user)
-    c = CreateUser()
+    c = CreateUser("1","u1","u1@test.com","12345678A")
     c_bus = CommandBus()
     c_bus.subscribe(CreateUser, h)
-    user_info = {
-        "uuid": "1",
-        "username": "u1",
-        "email": "u1@test.com",
-        "dni": "12345678A"
-    }
-
-    ok = c_bus.dispatch(c.c_name,user_info)
+    
+    ok = c_bus.dispatch(c)
     assert ok == "ok"
 
     users = repo_user.find_all()

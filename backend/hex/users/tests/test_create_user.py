@@ -11,15 +11,9 @@ def test_create_user_1():
     c_bus = CommandBus()
     repo_user = MemoryUsersRepo([])
     h = CreateUserHandler(repo_user)
-    c = CreateUser()
+    c = CreateUser("aaaaa11111","username1","email@test.com","12345678A")
     c_bus.subscribe(CreateUser,h)
-    user_info = {
-        "uuid": "aaaaa11111",
-        "username": "username1",
-        "email": "email@test.com",
-        "dni": "12345678A"
-    }
-    c_bus.dispatch(c.c_name, user_info)
+    c_bus.dispatch(c)
 
     users = repo_user.users
     assert len(users) == 1
@@ -34,16 +28,10 @@ def test_create_user_2():
     repo_user = MemoryUsersRepo([User('1', 'u1', 'u1@test.com', '12345678A')])
     c_bus = CommandBus()
     h = CreateUserHandler(repo_user)
-    c = CreateUser()
+    c = CreateUser('1', 'u1', 'u1@test.com', '12345678A')
     c_bus.subscribe(CreateUser,h)
-    user_info = {
-        "uuid": "1",
-        "username": "u1",
-        "email": "u1@test.com",
-        "dni": "12345678A"
-    }
     try:
-        c_bus.dispatch(c.c_name, user_info)
+        c_bus.dispatch(c)
         users = repo_user.users
     except Exception as e:
         assert type(e) == UsernameAlreadyExists
@@ -62,16 +50,10 @@ def test_create_user_3():
     repo_user = MemoryUsersRepo([User('1', 'u1', 'u1@test.com', '12345678A')])
     c_bus = CommandBus()
     h = CreateUserHandler(repo_user)
-    c = CreateUser()
+    c = CreateUser("aaaaa11111","u2","u1@test.com","12345677A")
     c_bus.subscribe(CreateUser, h)
-    user_info = {
-        "uuid": "aaaaa11111",
-        "username": "u2",
-        "email": "u1@test.com",
-        "dni": "12345677A"
-    }
     try:
-        c_bus.dispatch(c.c_name, user_info)
+        c_bus.dispatch(c)
     except Exception as e:
         assert type(e) == EmailAlreadyExists
     else:
@@ -89,16 +71,11 @@ def test_create_user_4():
     repo_user = MemoryUsersRepo([User('1', 'u1', 'u1@test.com', '12345678A')])
     c_bus = CommandBus()
     h = CreateUserHandler(repo_user)
-    c = CreateUser()
+    c = CreateUser("aaaaa11111","u2","u2@test.com","12345678A")
     c_bus.subscribe(CreateUser, h)
-    user_info = {
-        "uuid": "aaaaa11111",
-        "username": "u2",
-        "email": "u2@test.com",
-        "dni": "12345678A"
-    }
+    
     try:
-        c_bus.dispatch(c.c_name, user_info)
+        c_bus.dispatch(c)
     except Exception as e:
         assert type(e) == DNIAlreadyExists
     else:
@@ -116,16 +93,11 @@ def test_create_user_5():
     repo_user = MemoryUsersRepo([User('1', 'u1', 'u1@test.com', '12345678A')])
     c_bus = CommandBus()
     h = CreateUserHandler(repo_user)
-    c = CreateUser()
+    c = CreateUser("aaaaa11111","u2","u2@test.com","")
     c_bus.subscribe(CreateUser, h)
-    user_info = {
-        "uuid": "aaaaa11111",
-        "username": "u2",
-        "email": "u2@test.com",
-        "dni": ""
-    }
+    
     try:
-        c_bus.dispatch(c.c_name, user_info)
+        c_bus.dispatch(c)
     except Exception as e:
         assert type(e) == InvalidDNI
     else:

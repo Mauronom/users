@@ -5,10 +5,8 @@ class QueryBus:
     def subscribe(self, query_class, handler):
         self.handlers[query_class.q_name] = handler
 
-    def dispatch(self, q_name, param=None):
-        if param is not None:
-            return self.handlers[q_name].execute(param)
-        return self.handlers[q_name].execute()
+    def dispatch(self, q):
+        return self.handlers[q.q_name].execute(q)
 
 
 class CommandBus:
@@ -18,8 +16,8 @@ class CommandBus:
     def subscribe(self, command_class, handler):
         self.handlers[command_class.c_name] = handler
 
-    def dispatch(self, c_name,c_info):
-        return self.handlers[c_name].execute(c_info)
+    def dispatch(self, cmd):
+        return self.handlers[cmd.c_name].execute(cmd)
 
 def init_buses(cmd_bus,q_bus):
     from hex.users.infra import DjangoUsersRepo

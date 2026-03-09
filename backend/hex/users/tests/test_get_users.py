@@ -10,7 +10,7 @@ def test_get_users_1():
     h = GetUsersHandler(repo_user)
     q = GetUsers()
     q_bus.subscribe(GetUsers,h)
-    users = q_bus.dispatch(q.q_name)
+    users = q_bus.dispatch(q)
     assert len(users) == 0
     
 def test_get_users_2():
@@ -20,7 +20,7 @@ def test_get_users_2():
     h = GetUsersHandler(repo_user)
     q = GetUsers()
     q_bus.subscribe(GetUsers,h)
-    users = q_bus.dispatch(q.q_name)
+    users = q_bus.dispatch(q)
     assert len(users) == 1
     assert users[0] == u
 

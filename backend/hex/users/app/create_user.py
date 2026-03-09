@@ -2,22 +2,27 @@ from hex.users.domain import User
 from hex.users.domain import UsernameAlreadyExists
 from hex.users.domain import EmailAlreadyExists
 from hex.users.domain import DNIAlreadyExists
+from dataclasses import dataclass
 
-
+@dataclass
 class CreateUser:
-       c_name = "create.user"
-
+    c_name = "create.user"
+    uuid:str
+    username:str
+    email:str
+    dni:str
+        
 
 class CreateUserHandler:
     def __init__(self, init_user_repo):
         self.user_repo = init_user_repo
 
-    def execute(self, user_info):
+    def execute(self, cmd):
 
-        uuid = user_info["uuid"]
-        username = user_info["username"]
-        email = user_info["email"]
-        dni = user_info["dni"]
+        uuid = cmd.uuid
+        username = cmd.username
+        email = cmd.email
+        dni = cmd.dni
         
         user = User(uuid, username, email, dni)
 

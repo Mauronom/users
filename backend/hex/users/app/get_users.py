@@ -5,5 +5,5 @@ class GetUsersHandler:
     def __init__(self, init_user_repo):
         self.user_repo = init_user_repo
 
-    def execute(self):
+    def execute(self,q):
         return self.user_repo.find_all()
