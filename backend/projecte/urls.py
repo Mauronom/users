@@ -22,27 +22,15 @@ from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt
 def query_api(request, q_name):
-    print(request.method)
     if request.method == "GET":
         from hex.users.infra import q_bus
         try:
-            result = [e.to_primitive() for e in q_bus.dispatch(q_name)]
-            print(result)
+            q_json = request.GET.dict()
+            query_class = q_bus.get_query_class(q_name)
+            q = query_class(**q_json)
+            res = q_bus.dispatch(q)
+            result = [e.to_primitive() for e in res] if type(res)==list else res.to_primitive()
             return JsonResponse(result, safe=False)
-        except:
-            import traceback; traceback.print_exc()
-    return JsonResponse({"error": "Method not allowed"}, status=405)
-
-
-@csrf_exempt
-def query_api_with_param(request, q_name, param):
-    if request.method == "GET":
-        from hex.users.infra import q_bus
-        try:
-            result = q_bus.dispatch(q_name, param)
-            if result is None:
-                return JsonResponse({"error": "Not found"}, status=404)
-            return JsonResponse(result.to_primitive(), safe=False)
         except:
             import traceback; traceback.print_exc()
     return JsonResponse({"error": "Method not allowed"}, status=405)
@@ -57,13 +45,12 @@ def command_api(request, c_name):
         from hex.users.domain.exceptions import EmailAlreadyExists
         from hex.users.domain.exceptions import DNIAlreadyExists
         try:
-            body = request.body.decode("utf-8")
-            c_info = json.loads(body) if body else {}
-
-            c_bus.dispatch(c_name, c_info)
+            c_json = request.POST.dict()
+            command_class = c_bus.get_command_class(c_name)
+            cmd = command_class(**c_json)
+            c_bus.dispatch(cmd)
 
             return JsonResponse({"status": "ok"})
-
         except UsernameAlreadyExists:
             return JsonResponse( {'detail':"Username already exists"},status=400,safe=False)
         except EmailAlreadyExists:
@@ -75,7 +62,6 @@ def command_api(request, c_name):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('query/<str:q_name>/<str:param>/', query_api_with_param, name='query_api_with_param'),
     path('query/<str:q_name>/', query_api, name='query_api'),
     path('command/<str:c_name>/', command_api, name='command_api'),
 ]

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 @dataclass
 class GetUserInfo:
-    q_name = "GetUserInfo"
+    q_name = "get.user.info"
     username:str
 class GetUserInfoHandler:
     def __init__(self, init_user_repo):
