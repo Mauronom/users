@@ -30,8 +30,18 @@ class CQRSApiTest(TestCase):
     def test_command_api(self):
         c = User.objects.filter(username='u2').count()
         self.assertEqual(c,0)
-        response = self.client.post("/command/create.user/", {"uuid":"550e8400-e29b-41d4-a716-446655440001", "username":"u2", "email": "u2@test.com","dni":"12345677A"})
+        import json
 
+        response = self.client.post(
+            "/command/create.user/",
+            data=json.dumps({
+                "uuid": "550e8400-e29b-41d4-a716-446655440001",
+                "username": "u2",
+                "email": "u2@test.com",
+                "dni": "12345677A"
+            }),
+            content_type="application/json"
+        )
         self.assertEqual(response.status_code, 200)
 
         data = response.json()
