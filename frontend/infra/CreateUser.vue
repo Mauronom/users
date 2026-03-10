@@ -57,7 +57,8 @@ export default Vue.extend({
             message_color: 'black', 
             users_list: '', 
             shown_user: {selected_username:'', user_info: {username: "", email: "", dni: "" , error: ""}}};
-        const repo = new MemoryUserRepo([]);
+        // const repo = new MemoryUserRepo([]);
+        const repo = new APIUserRepo('http://0.0.0.0:8000');
         return {
             title: 'Crea un Usuari',
             counter: 0,

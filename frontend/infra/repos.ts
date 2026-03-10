@@ -121,7 +121,8 @@ export class APIUserRepo implements UserRepo {
 
     async find_by_username(username:string): Promise<User | null> {
         const response = await fetch(
-            `${this.baseUrl}/query/get.user.info/${username}/`)
+            `${this.baseUrl}/query/get.user.info/?username=${encodeURIComponent(username)}`
+            )
 
         if (!response.ok) {
             throw new Error('QueryError')

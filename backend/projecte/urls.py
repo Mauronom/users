@@ -45,7 +45,7 @@ def command_api(request, c_name):
         from hex.users.domain.exceptions import EmailAlreadyExists
         from hex.users.domain.exceptions import DNIAlreadyExists
         try:
-            c_json = request.POST.dict()
+            c_json = json.loads(request.body)
             command_class = c_bus.get_command_class(c_name)
             cmd = command_class(**c_json)
             c_bus.dispatch(cmd)
