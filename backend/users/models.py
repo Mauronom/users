@@ -13,3 +13,6 @@ class Profile(models.Model):
     )
     uuid = models.UUIDField(default=uuid.uuid4, unique=True)
     dni = models.CharField(max_length=20, unique=True)
+
+class Template(models.Model):
+    html = models.TextField()
