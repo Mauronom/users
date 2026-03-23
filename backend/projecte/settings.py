@@ -146,3 +146,7 @@ from hex.users.infra import QueryBus, CommandBus, init_buses, c_bus, q_bus
 print('inicialitzant busos...')
 init_buses(c_bus,q_bus)
 print('inicialitzant busos...fet')
+
+from hex.mailing.infra import init_buses as mailing_init_buses
+from hex.mailing.infra import c_bus as mailing_c_bus, q_bus as mailing_q_bus
+mailing_init_buses(mailing_c_bus, mailing_q_bus)

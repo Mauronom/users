@@ -1,29 +1,18 @@
 from django.contrib import admin
-
-# Register your models here.
-from django.contrib import admin
-from .models import Contact
-
-from import_export import resources
-from .models import Contact
+from .models import ContactModel, TemplateModel, MailModel
 
 import uuid
 from import_export import resources, fields
-from .models import Contact
 
-import uuid
-from import_export import resources
-from .models import Contact
 from import_export.admin import ImportExportModelAdmin
 
 class ContactResource(resources.ModelResource):
-    email = fields.Field(column_name='mail', attribute='email')  # mapar mail → email
-
+    
     class Meta:
-        model = Contact
+        model = ContactModel
         # No posar 'import_id_fields', així el CSV no necessita el UUID
         import_id_fields = ()
-        fields = ('nom', 'email', 'web', 'persona_contacte', 'telefon', 'notes', 'idioma')
+        fields = ('nom', 'mail', 'web', 'persona_contacte', 'telefon', 'notes', 'idioma')
         skip_unchanged = False
         report_skipped = True
 
@@ -50,7 +39,7 @@ class ContactResource(resources.ModelResource):
         keys_to_remove = [key for key in row.keys() if key not in valid_fields]
         for key in keys_to_remove:
             del row[key]
-@admin.register(Contact)
+@admin.register(ContactModel)
 class ContactAdmin(ImportExportModelAdmin):
     resource_class = ContactResource
 
@@ -75,3 +64,20 @@ class ContactAdmin(ImportExportModelAdmin):
             'fields': ('nom', 'email', 'web', 'persona_contacte', 'telefon', 'notes', 'idioma')
         }),
     )
+
+@admin.register(ContactModel)
+class ContactAdmin(ImportExportModelAdmin):
+    resource_class = ContactResource
+    list_display = ["nom", "mail", "idioma", "data_enviat"]
+    search_fields = ["nom", "mail"]
+
+
+@admin.register(TemplateModel)
+class TemplateAdmin(admin.ModelAdmin):
+    list_display = ["uuid", "subject","body"]
+
+
+@admin.register(MailModel)
+class MailAdmin(admin.ModelAdmin):
+    list_display = ["uuid", "to", "status", "send_date","body"]
+    list_filter = ["status"]
