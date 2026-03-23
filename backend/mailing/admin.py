@@ -12,7 +12,7 @@ class ContactResource(resources.ModelResource):
         model = ContactModel
         # No posar 'import_id_fields', així el CSV no necessita el UUID
         import_id_fields = ()
-        fields = ('nom', 'mail', 'web', 'persona_contacte', 'telefon', 'notes', 'idioma')
+        fields = ('uuid','nom', 'mail', 'web', 'persona_contacte', 'telefon', 'notes', 'idioma')
         skip_unchanged = False
         report_skipped = True
 
@@ -39,31 +39,6 @@ class ContactResource(resources.ModelResource):
         keys_to_remove = [key for key in row.keys() if key not in valid_fields]
         for key in keys_to_remove:
             del row[key]
-@admin.register(ContactModel)
-class ContactAdmin(ImportExportModelAdmin):
-    resource_class = ContactResource
-
-    # Camps que es veuran a la llista
-    list_display = ('nom', 'email', 'telefon', 'persona_contacte', 'idioma')
-    
-    # Camps que es podran clicar per anar al detall
-    list_display_links = ('nom', 'email')
-    
-    # Filtres laterals
-    list_filter = ('idioma',)
-    
-    # Camps que es podran buscar
-    search_fields = ('nom', 'email', 'persona_contacte', 'telefon')
-    
-    # Orden per defecte
-    ordering = ('nom',)
-    
-    # Camps opcions en la vista de detall
-    fieldsets = (
-        (None, {
-            'fields': ('nom', 'email', 'web', 'persona_contacte', 'telefon', 'notes', 'idioma')
-        }),
-    )
 
 @admin.register(ContactModel)
 class ContactAdmin(ImportExportModelAdmin):
