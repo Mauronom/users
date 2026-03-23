@@ -5,14 +5,23 @@ import uuid
 from import_export import resources, fields
 
 from import_export.admin import ImportExportModelAdmin
+from import_export.forms import ImportForm
+from django import forms
+
+
+class ContactImportForm(ImportForm):
+    tags = forms.CharField(required=False, help_text="Tags per a tots els contactes importats")
 
 class ContactResource(resources.ModelResource):
-    
+
+    def before_import(self, dataset, **kwargs):
+        self._tags = kwargs.get('user_form_data', {}).get('tags', '')
+
     class Meta:
         model = ContactModel
         # No posar 'import_id_fields', així el CSV no necessita el UUID
         import_id_fields = ()
-        fields = ('uuid','nom', 'mail', 'web', 'persona_contacte', 'telefon', 'notes', 'idioma')
+        fields = ('uuid','nom', 'mail', 'web', 'persona_contacte', 'telefon', 'notes', 'idioma',"tags","data_enviat")
         skip_unchanged = False
         report_skipped = True
 
@@ -34,6 +43,9 @@ class ContactResource(resources.ModelResource):
             valor = row['idioma'].strip().lower()
             row['idioma'] = idioma_map.get(valor, 'ca')  # default 'ca' si no troba
 
+        # Apliquem els tags del formulari
+        row['tags'] = getattr(self, '_tags', '')
+
         # Només mantenir columnes definides al Resource
         valid_fields = {f.column_name for f in self.get_fields()}
         keys_to_remove = [key for key in row.keys() if key not in valid_fields]
@@ -43,6 +55,7 @@ class ContactResource(resources.ModelResource):
 @admin.register(ContactModel)
 class ContactAdmin(ImportExportModelAdmin):
     resource_class = ContactResource
+    import_form_class = ContactImportForm
     list_display = ["nom", "mail", "idioma", "data_enviat"]
     search_fields = ["nom", "mail"]
 

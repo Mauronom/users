@@ -11,6 +11,7 @@ class ContactModel(models.Model):
     notes = models.TextField(blank=True)
     data_enviat = models.DateField(null=True, blank=True)
     idioma = models.CharField(max_length=16, blank=True)
+    tags = models.CharField(max_length=255, blank=True)
 
     class Meta:
         app_label = "mailing"
