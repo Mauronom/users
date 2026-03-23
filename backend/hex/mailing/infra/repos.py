@@ -87,20 +87,22 @@ class DjangoTemplatesRepo(TemplatesRepo):
 
 class DjangoMailsRepo(MailsRepo):
     def save(self, mail):
-        from mailing.models import MailModel
+        from mailing.models import MailModel, ContactModel
+        contact_obj = ContactModel.objects.get(uuid=mail.contact.uuid)
         MailModel.objects.update_or_create(
             uuid=mail.uuid,
-            defaults={"send_date": mail.send_date, "status": mail.status.value, "to": mail.to, "subject": mail.subject, "body": mail.body, "attachments": mail.attachments, "images": mail.images},
+            defaults={"send_date": mail.send_date, "status": mail.status.value, "contact": contact_obj, "subject": mail.subject, "body": mail.body, "attachments": mail.attachments, "images": mail.images},
         )
 
     def find_all(self):
         from mailing.models import MailModel
-        return [self._to_domain(m) for m in MailModel.objects.all()]
+        return [self._to_domain(m) for m in MailModel.objects.select_related("contact").all()]
 
     def find_by_field(self, field, value):
         from mailing.models import MailModel
-        return [self._to_domain(m) for m in MailModel.objects.filter(**{field: value})]
+        return [self._to_domain(m) for m in MailModel.objects.select_related("contact").filter(**{field: value})]
 
     def _to_domain(self, obj):
-        from hex.mailing.domain import Mail, MailStatus
-        return Mail(uuid=str(obj.uuid), send_date=obj.send_date, status=MailStatus(obj.status), to=obj.to, subject=obj.subject, body=obj.body, attachments=obj.attachments, images=obj.images)
+        from hex.mailing.domain import Mail, MailStatus, Contact
+        contact = Contact(uuid=str(obj.contact.uuid), nom=obj.contact.nom, mail=obj.contact.mail, web=obj.contact.web, persona_contacte=obj.contact.persona_contacte, telefon=obj.contact.telefon, notes=obj.contact.notes, data_enviat=obj.contact.data_enviat, idioma=obj.contact.idioma) if obj.contact else None
+        return Mail(uuid=str(obj.uuid), send_date=obj.send_date, status=MailStatus(obj.status), contact=contact, subject=obj.subject, body=obj.body, attachments=obj.attachments, images=obj.images)

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from hex.mailing.domain.mail import MailStatus
 from .models import ContactModel, TemplateModel, MailModel
 
 import uuid
@@ -8,6 +9,14 @@ from import_export.admin import ImportExportModelAdmin
 from import_export.forms import ImportForm
 from django import forms
 
+@admin.action(description="Create initial mail")
+def create_initial_mail(modeladmin, request, queryset):
+    for contact in queryset:
+        if contact.data_enviat:
+            obj, created = MailModel.objects.get_or_create(
+                contact=contact,
+                defaults={"uuid": str(uuid.uuid4()), "send_date": contact.data_enviat, "subject": "init", "body": "init","status": MailStatus.sent.value},
+            )
 
 class ContactImportForm(ImportForm):
     tags = forms.CharField(required=False, help_text="Tags per a tots els contactes importats")
@@ -58,14 +67,16 @@ class ContactAdmin(ImportExportModelAdmin):
     import_form_class = ContactImportForm
     list_display = ["nom", "mail", "idioma", "data_enviat"]
     search_fields = ["nom", "mail"]
+    actions = [create_initial_mail]
+    
 
 
 @admin.register(TemplateModel)
 class TemplateAdmin(admin.ModelAdmin):
-    list_display = ["uuid", "subject","body"]
+    list_display = ["subject"]
 
 
 @admin.register(MailModel)
 class MailAdmin(admin.ModelAdmin):
-    list_display = ["uuid", "to", "status", "send_date","body"]
+    list_display = ["subject","contact", "status", "send_date"]
     list_filter = ["status"]

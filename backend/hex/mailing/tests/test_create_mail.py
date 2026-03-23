@@ -29,7 +29,7 @@ def test_create_mail_success():
 
     mails = m_repo.mails
     assert len(mails) == 1
-    assert mails[0].to == "vida@test.com"
+    assert mails[0].contact.mail == "vida@test.com"
 
 
 def test_create_mail_status_pending():

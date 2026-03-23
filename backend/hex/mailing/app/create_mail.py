@@ -41,7 +41,7 @@ class CreateMailHandler:
             uuid=str(uuid_lib.uuid4()),
             send_date=None,
             status=MailStatus.pending,
-            to=contact.mail,
+            contact=contact,
             subject=subject,
             body=body,
             attachments=list(template.attachments),
