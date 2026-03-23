@@ -1,0 +1,3 @@
+[submodule "mail-machine"]
+	path = mail-machine
+	url = git@github.com:mirlomusica/mail_machine.git
