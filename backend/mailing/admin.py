@@ -8,6 +8,8 @@ from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
 from import_export.forms import ImportForm
 from django import forms
+from hex.mailing.app import CreateMail
+from hex.mailing.infra import c_bus
 
 @admin.action(description="Create initial mail")
 def create_initial_mail(modeladmin, request, queryset):
@@ -17,6 +19,13 @@ def create_initial_mail(modeladmin, request, queryset):
                 contact=contact,
                 defaults={"uuid": str(uuid.uuid4()), "send_date": contact.data_enviat, "subject": "init", "body": "init","status": MailStatus.sent.value},
             )
+
+@admin.action(description="Create email from template")
+def create_email_from_template(modeladmin, request, queryset):
+    template = TemplateModel.objects.filter(subject="Test")[0]
+    for contact in queryset:
+        c_bus.dispatch(CreateMail(template_id=template.uuid, contact_id=contact.uuid))
+
 
 class ContactImportForm(ImportForm):
     tags = forms.CharField(required=False, help_text="Tags per a tots els contactes importats")
@@ -67,7 +76,7 @@ class ContactAdmin(ImportExportModelAdmin):
     import_form_class = ContactImportForm
     list_display = ["nom", "mail", "idioma", "data_enviat"]
     search_fields = ["nom", "mail"]
-    actions = [create_initial_mail]
+    actions = [create_initial_mail, create_email_from_template]
     
 
 
