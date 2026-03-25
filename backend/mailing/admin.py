@@ -1,6 +1,7 @@
 from django.contrib import admin
 from hex.mailing.domain.mail import MailStatus
 from .models import ContactModel, TemplateModel, MailModel
+from django_summernote.admin import SummernoteModelAdmin
 
 import uuid
 from import_export import resources, fields
@@ -79,13 +80,15 @@ class ContactAdmin(ImportExportModelAdmin):
     actions = [create_initial_mail, create_email_from_template]
     
 
-
 @admin.register(TemplateModel)
-class TemplateAdmin(admin.ModelAdmin):
+class TemplateAdmin(SummernoteModelAdmin):
     list_display = ["subject"]
+    summernote_fields = ['body',]
 
 
 @admin.register(MailModel)
-class MailAdmin(admin.ModelAdmin):
+class MailAdmin(SummernoteModelAdmin):
     list_display = ["subject","contact", "status", "send_date"]
     list_filter = ["status"]
+    summernote_fields = ['body',]
+

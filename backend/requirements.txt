@@ -5,3 +5,4 @@ psycopg2-binary
 django-extensions
 pytest
 django-import-export
+django-summernote
