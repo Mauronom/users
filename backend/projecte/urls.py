@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path ,include
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -64,5 +64,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('query/<str:q_name>/', query_api, name='query_api'),
     path('command/<str:c_name>/', command_api, name='command_api'),
+    path("mailing/", include("mailing.urls")),
+
 ]
 
