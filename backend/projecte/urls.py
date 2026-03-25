@@ -18,6 +18,10 @@ from django.contrib import admin
 from django.urls import path ,include
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.urls import include
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 
 @csrf_exempt
@@ -65,6 +69,10 @@ urlpatterns = [
     path('query/<str:q_name>/', query_api, name='query_api'),
     path('command/<str:c_name>/', command_api, name='command_api'),
     path("mailing/", include("mailing.urls")),
+    path('summernote/', include('django_summernote.urls')),
 
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
