@@ -70,6 +70,7 @@ urlpatterns = [
     path('command/<str:c_name>/', command_api, name='command_api'),
     path("mailing/", include("mailing.urls")),
     path('summernote/', include('django_summernote.urls')),
+    path("mailing/", include("mailing.urls")),
 
 ]
 
