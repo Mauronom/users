@@ -1,5 +1,6 @@
 from django import forms
+from .models import TemplateModel
 
 
 class SelectTemplateForm(forms.Form):
-    template = forms.CharField(label="template", max_length=100)
+    template = forms.ModelChoiceField(queryset=TemplateModel.objects.all())

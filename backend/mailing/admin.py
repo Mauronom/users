@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.contrib.admin import helpers
+from django.shortcuts import render
 from hex.mailing.domain.mail import MailStatus
 from .models import ContactModel, TemplateModel, MailModel
 from django_summernote.admin import SummernoteModelAdmin
@@ -9,6 +11,7 @@ from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
 from import_export.forms import ImportForm
 from django import forms
+from .forms import SelectTemplateForm
 from hex.mailing.app import CreateMail
 from hex.mailing.infra import c_bus
 
@@ -23,9 +26,17 @@ def create_initial_mail(modeladmin, request, queryset):
 
 @admin.action(description="Create email from template")
 def create_email_from_template(modeladmin, request, queryset):
-    template = TemplateModel.objects.filter(subject="Test")[0]
-    for contact in queryset:
-        c_bus.dispatch(CreateMail(template_id=template.uuid, contact_id=contact.uuid))
+    form = SelectTemplateForm(request.POST or None)
+    if 'apply' in request.POST and form.is_valid():
+        template = form.cleaned_data['template']
+        for contact in queryset:
+            c_bus.dispatch(CreateMail(template_id=template.uuid, contact_id=contact.uuid))
+        return None
+    return render(request, 'mailing/select-template.html', {
+        'form': form,
+        'queryset': queryset,
+        'action_checkbox_name': helpers.ACTION_CHECKBOX_NAME,
+    })
 
 
 class ContactImportForm(ImportForm):
