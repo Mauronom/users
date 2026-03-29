@@ -1,0 +1,20 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Create template from HTML file</h1>
+<form method="post">
+    {% csrf_token %}
+    <p>
+        <label for="id_html_file">HTML file:</label>
+        <select name="html_file" id="id_html_file" required>
+            {% for f in html_files %}
+            <option value="{{ f }}">{{ f }}</option>
+            {% endfor %}
+        </select>
+    </p>
+    <p>
+        <label for="id_subject">Subject:</label>
+        <input type="text" name="subject" id="id_subject" required style="width:400px">
+    </p>
+    <input type="submit" value="Next →">
+</form>
+{% endblock %}

@@ -1,4 +1,5 @@
-from hex.mailing.domain import ContactsRepo, TemplatesRepo, MailsRepo
+from pathlib import Path
+from hex.mailing.domain import ContactsRepo, TemplatesRepo, MailsRepo, CidImageRepoPort, AttachmentRepoPort
 
 
 class MemoryContactsRepo(ContactsRepo):
@@ -106,3 +107,23 @@ class DjangoMailsRepo(MailsRepo):
         from hex.mailing.domain import Mail, MailStatus, Contact
         contact = Contact(uuid=str(obj.contact.uuid), nom=obj.contact.nom, mail=obj.contact.mail, web=obj.contact.web, persona_contacte=obj.contact.persona_contacte, telefon=obj.contact.telefon, notes=obj.contact.notes, data_enviat=obj.contact.data_enviat, idioma=obj.contact.idioma) if obj.contact else None
         return Mail(uuid=str(obj.uuid), send_date=obj.send_date, status=MailStatus(obj.status), contact=contact, subject=obj.subject, body=obj.body, attachments=obj.attachments, images=obj.images)
+
+
+class FsCidImageRepo(CidImageRepoPort):
+    def __init__(self, img_dir):
+        self.img_dir = Path(img_dir)
+
+    def find(self, cid_name: str) -> bytes:
+        for f in self.img_dir.iterdir():
+            if f.stem == cid_name:
+                return f.read_bytes()
+        return None
+
+
+class FsAttachmentRepo(AttachmentRepoPort):
+    def __init__(self, attachments_dir):
+        self.attachments_dir = Path(attachments_dir)
+
+    def find(self, path: str) -> tuple:
+        f = Path(path)
+        return (f.name, f.read_bytes())

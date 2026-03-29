@@ -1,5 +1,9 @@
 import base64
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+from email.mime.base import MIMEBase
+from email import encoders
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -60,8 +64,25 @@ class GmailSender(MailSenderPort):
 
     def send(self, mail):
         service = get_gmail_service(self.token_path)
-        message = MIMEText(mail.body, "html")
-        message["to"] = mail.contact.mail
-        message["subject"] = mail.subject
+        if mail.images or mail.attachments:
+            message = MIMEMultipart("related")
+            message["to"] = mail.contact.mail
+            message["subject"] = mail.subject
+            message.attach(MIMEText(mail.body, "html"))
+            for cid, img_bytes in (mail.images or {}).items():
+                img = MIMEImage(img_bytes)
+                img.add_header("Content-ID", f"<{cid}>")
+                img.add_header("Content-Disposition", "inline")
+                message.attach(img)
+            for name, data in (mail.attachments or []):
+                part = MIMEBase("application", "octet-stream")
+                part.set_payload(data)
+                encoders.encode_base64(part)
+                part.add_header("Content-Disposition", f'attachment; filename="{name}"')
+                message.attach(part)
+        else:
+            message = MIMEText(mail.body, "html")
+            message["to"] = mail.contact.mail
+            message["subject"] = mail.subject
         raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
         service.users().messages().send(userId="me", body={"raw": raw}).execute()

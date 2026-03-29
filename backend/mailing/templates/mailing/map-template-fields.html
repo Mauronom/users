@@ -1,0 +1,52 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Map template fields</h1>
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="html_file" value="{{ html_file }}">
+    <input type="hidden" name="subject" value="{{ subject }}">
+
+    {% if substitutions %}
+    <h2>Substitutions</h2>
+    <p>Map each <code>{placeholder}</code> to a ContactModel field.</p>
+    <table>
+        <tr><th>Placeholder</th><th>Contact field</th></tr>
+        {% for var in substitutions %}
+        <tr>
+            <td><code>{{ '{' }}{{ var }}{{ '}' }}</code></td>
+            <td>
+                <select name="sub_{{ var }}">
+                    {% for field in contact_fields %}
+                    <option value="{{ field }}">{{ field }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if cids %}
+    <h2>CID Images</h2>
+    <p>Map each embedded image to a file in <code>mailing/img/</code>.</p>
+    <table>
+        <tr><th>CID</th><th>Image file</th></tr>
+        {% for cid in cids %}
+        <tr>
+            <td><code>cid:{{ cid }}</code></td>
+            <td>
+                <select name="cid_{{ cid }}">
+                    <option value="">(none)</option>
+                    {% for img in img_files %}
+                    <option value="{{ img }}">{{ img }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    <p><input type="submit" value="Create template"></p>
+</form>
+{% endblock %}

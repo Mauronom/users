@@ -34,14 +34,22 @@ def init_buses(cmd_bus, q_bus):
     from django.conf import settings
     from hex.mailing.infra.repos import DjangoContactsRepo, DjangoTemplatesRepo, DjangoMailsRepo
     from hex.mailing.infra.gmail_sender import GmailSender
-    from hex.mailing.app import CreateMail, CreateMailHandler, SendMail, SendMailHandler
+    from hex.mailing.app import CreateMail, CreateMailHandler, SendMail, SendMailHandler, CreateTemplateFromHtml, CreateTemplateFromHtmlHandler
 
     handler = CreateMailHandler(DjangoTemplatesRepo(), DjangoContactsRepo(), DjangoMailsRepo())
     cmd_bus.subscribe(CreateMail, handler)
 
+    from hex.mailing.infra.repos import FsCidImageRepo, FsAttachmentRepo
     sender = GmailSender(settings.GMAIL_CREDENTIALS_PATH, settings.GMAIL_TOKEN_PATH)
-    send_handler = SendMailHandler(DjangoMailsRepo(), sender)
+    send_handler = SendMailHandler(
+        DjangoMailsRepo(), sender,
+        cid_image_repo=FsCidImageRepo(settings.BASE_DIR / "mailing/img"),
+        attachment_repo=FsAttachmentRepo(settings.BASE_DIR / "mailing/attachments"),
+    )
     cmd_bus.subscribe(SendMail, send_handler)
+
+    create_tpl_handler = CreateTemplateFromHtmlHandler(DjangoTemplatesRepo())
+    cmd_bus.subscribe(CreateTemplateFromHtml, create_tpl_handler)
 
 
 q_bus = QueryBus()

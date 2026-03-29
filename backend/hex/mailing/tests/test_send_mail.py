@@ -1,7 +1,7 @@
 import pytest
 from hex.mailing.infra import MemoryMailsRepo, CommandBus
 from hex.mailing.app import SendMail, SendMailHandler
-from hex.mailing.domain import Mail, MailStatus, Contact, MailNotFound, MailSenderPort
+from hex.mailing.domain import Mail, MailStatus, Contact, MailNotFound, MailSenderPort, CidImageRepoPort, AttachmentRepoPort
 
 
 def make_contact(**kwargs):
@@ -25,6 +25,22 @@ class FakeMailSender(MailSenderPort):
         if self.fail:
             raise Exception("send failed")
         self.sent.append(mail)
+
+
+class FakeCidImageRepo(CidImageRepoPort):
+    def __init__(self, images):
+        self.images = images
+
+    def find(self, cid_name):
+        return self.images.get(cid_name)
+
+
+class FakeAttachmentRepo(AttachmentRepoPort):
+    def __init__(self, attachments):
+        self.attachments = attachments  # {path: (name, bytes)}
+
+    def find(self, path):
+        return self.attachments.get(path)
 
 
 def test_send_mail_sets_status_to_sent():
@@ -70,3 +86,51 @@ def test_send_mail_sender_failure_sets_error_status():
         c_bus.dispatch(SendMail(mail_id="m1"))
 
     assert m_repo.mails[0].status == MailStatus.error
+
+
+def test_send_mail_passes_resolved_cid_images_to_sender():
+    mail = make_mail(images={"sinoes": "mailing/img/sinoes.jpg"})
+    m_repo = MemoryMailsRepo([mail])
+    sender = FakeMailSender()
+    image_repo = FakeCidImageRepo({"sinoes": b"img_bytes"})
+    c_bus = CommandBus()
+    c_bus.subscribe(SendMail, SendMailHandler(m_repo, sender, image_repo))
+    c_bus.dispatch(SendMail(mail_id="m1"))
+
+    assert sender.sent[0].images == {"sinoes": b"img_bytes"}
+
+
+def test_send_mail_preserves_image_paths_in_repo():
+    mail = make_mail(images={"sinoes": "mailing/img/sinoes.jpg"})
+    m_repo = MemoryMailsRepo([mail])
+    sender = FakeMailSender()
+    image_repo = FakeCidImageRepo({"sinoes": b"img_bytes"})
+    c_bus = CommandBus()
+    c_bus.subscribe(SendMail, SendMailHandler(m_repo, sender, image_repo))
+    c_bus.dispatch(SendMail(mail_id="m1"))
+
+    assert m_repo.mails[0].images == {"sinoes": "mailing/img/sinoes.jpg"}
+
+
+def test_send_mail_passes_resolved_attachments_to_sender():
+    mail = make_mail(attachments=["mailing/attachments/foo.pdf"])
+    m_repo = MemoryMailsRepo([mail])
+    sender = FakeMailSender()
+    attachment_repo = FakeAttachmentRepo({"mailing/attachments/foo.pdf": ("foo.pdf", b"pdf_bytes")})
+    c_bus = CommandBus()
+    c_bus.subscribe(SendMail, SendMailHandler(m_repo, sender, attachment_repo=attachment_repo))
+    c_bus.dispatch(SendMail(mail_id="m1"))
+
+    assert sender.sent[0].attachments == [("foo.pdf", b"pdf_bytes")]
+
+
+def test_send_mail_preserves_attachment_paths_in_repo():
+    mail = make_mail(attachments=["mailing/attachments/foo.pdf"])
+    m_repo = MemoryMailsRepo([mail])
+    sender = FakeMailSender()
+    attachment_repo = FakeAttachmentRepo({"mailing/attachments/foo.pdf": ("foo.pdf", b"pdf_bytes")})
+    c_bus = CommandBus()
+    c_bus.subscribe(SendMail, SendMailHandler(m_repo, sender, attachment_repo=attachment_repo))
+    c_bus.dispatch(SendMail(mail_id="m1"))
+
+    assert m_repo.mails[0].attachments == ["mailing/attachments/foo.pdf"]

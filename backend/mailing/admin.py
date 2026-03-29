@@ -1,19 +1,27 @@
 from django.contrib import admin
 from django.contrib.admin import helpers
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import path
+from django.conf import settings
 from hex.mailing.domain.mail import MailStatus
 from .models import ContactModel, TemplateModel, MailModel
 from django_summernote.admin import SummernoteModelAdmin
 
 import uuid
+import os
 from import_export import resources, fields
 
 from import_export.admin import ImportExportModelAdmin
 from import_export.forms import ImportForm
 from django import forms
 from .forms import SelectTemplateForm
-from hex.mailing.app import CreateMail, SendMail
+from hex.mailing.app import CreateMail, SendMail, CreateTemplateFromHtml
 from hex.mailing.infra import c_bus
+from .html_utils import extract_substitutions, extract_cids
+
+CONTACT_FIELDS = ["nom", "mail", "web", "persona_contacte", "telefon", "notes", "data_enviat", "idioma", "tags"]
+HTML_TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "html_templates")
+IMG_DIR = os.path.join(os.path.dirname(__file__), "img")
 
 @admin.action(description="Create initial mail")
 def create_initial_mail(modeladmin, request, queryset):
@@ -95,6 +103,62 @@ class ContactAdmin(ImportExportModelAdmin):
 class TemplateAdmin(SummernoteModelAdmin):
     list_display = ["subject"]
     summernote_fields = ['body',]
+    change_list_template = "mailing/template_changelist.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path("create-from-html/", self.admin_site.admin_view(self.select_html_view), name="mailing_template_create_from_html"),
+            path("create-from-html/map/", self.admin_site.admin_view(self.map_fields_view), name="mailing_template_map_fields"),
+        ]
+        return custom + urls
+
+    def select_html_view(self, request):
+        if request.method == "POST":
+            return redirect(
+                request.build_absolute_uri(
+                    "../create-from-html/map/"
+                ) + f"?html_file={request.POST['html_file']}&subject={request.POST['subject']}"
+            )
+        html_files = sorted(f for f in os.listdir(HTML_TEMPLATES_DIR) if f.endswith(".html"))
+        return render(request, "mailing/select-html-template.html", {"html_files": html_files})
+
+    def map_fields_view(self, request):
+        html_file = request.POST.get("html_file") or request.GET.get("html_file", "")
+        subject = request.POST.get("subject") or request.GET.get("subject", "")
+
+        html_path = os.path.join(HTML_TEMPLATES_DIR, html_file)
+        with open(html_path, "r", encoding="utf-8") as f:
+            raw_html = f.read()
+
+        substitutions = sorted(extract_substitutions(raw_html))
+        cids = sorted(extract_cids(raw_html))
+        img_files = sorted(os.listdir(IMG_DIR)) if os.path.isdir(IMG_DIR) else []
+
+        if request.method == "POST":
+            sub_map = {var: request.POST[f"sub_{var}"] for var in substitutions}
+            img_map = {cid: request.POST[f"cid_{cid}"] for cid in cids if request.POST.get(f"cid_{cid}")}
+
+            from premailer import transform
+            compiled_body = transform(raw_html)
+
+            c_bus.dispatch(CreateTemplateFromHtml(
+                subject=subject,
+                body=compiled_body,
+                substitutions=sub_map,
+                images=img_map,
+            ))
+            self.message_user(request, f"Template '{subject}' created successfully.")
+            return redirect("../../../")
+
+        return render(request, "mailing/map-template-fields.html", {
+            "html_file": html_file,
+            "subject": subject,
+            "substitutions": substitutions,
+            "cids": cids,
+            "contact_fields": CONTACT_FIELDS,
+            "img_files": img_files,
+        })
 
 
 @admin.action(description="Send mails")
