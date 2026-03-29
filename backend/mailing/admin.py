@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import helpers
-from django.shortcuts import render, redirect
-from django.urls import path
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import path, reverse
 from django.conf import settings
 from hex.mailing.domain.mail import MailStatus
 from .models import ContactModel, TemplateModel, MailModel
@@ -17,7 +17,7 @@ from django import forms
 from .forms import SelectTemplateForm
 from hex.mailing.app import CreateMail, SendMail, CreateTemplateFromHtml
 from hex.mailing.infra import c_bus
-from .html_utils import extract_substitutions, extract_cids
+from .html_utils import extract_substitutions, extract_cids, render_body_with_inline_images
 
 CONTACT_FIELDS = ["nom", "mail", "web", "persona_contacte", "telefon", "notes", "data_enviat", "idioma", "tags"]
 HTML_TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "html_templates")
@@ -140,7 +140,17 @@ class TemplateAdmin(SummernoteModelAdmin):
             img_map = {cid: request.POST[f"cid_{cid}"] for cid in cids if request.POST.get(f"cid_{cid}")}
 
             from premailer import transform
-            compiled_body = transform(raw_html)
+            light_css = """
+            body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+            }
+            """
+
+            compiled_body = transform(
+                raw_html,
+                css_text=light_css
+            )
 
             c_bus.dispatch(CreateTemplateFromHtml(
                 subject=subject,
@@ -161,25 +171,92 @@ class TemplateAdmin(SummernoteModelAdmin):
         })
 
 
-@admin.action(description="Send mails")
-def send_mails(modeladmin, request, queryset):
-    ok = 0
-    errors = 0
-    for mail in queryset:
-        try:
-            c_bus.dispatch(SendMail(mail_id=mail.uuid))
-            ok += 1
-        except Exception as e:
-            errors += 1
-            modeladmin.message_user(request, f"Error sending {mail.uuid} to {mail.contact.mail}: {type(e).__name__}: {e}", level="error")
-    if ok:
-        modeladmin.message_user(request, f"{ok} mail(s) sent successfully.")
-
-
 @admin.register(MailModel)
 class MailAdmin(SummernoteModelAdmin):
-    list_display = ["subject","contact", "status", "send_date"]
+    list_display = ["subject", "contact", "status", "send_date"]
     list_filter = ["status"]
     summernote_fields = ['body',]
-    actions = [send_mails]
+    actions = ["send_mails"]
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path("review/", self.admin_site.admin_view(self.review_mail_view), name="mailing_mail_review"),
+        ]
+        return custom + urls
+
+    @admin.action(description="Send mails")
+    def send_mails(self, request, queryset):
+        uuids = list(queryset.values_list("uuid", flat=True))
+        request.session["mail_review_queue"] = uuids
+        request.session["mail_review_sent"] = 0
+        request.session["mail_review_declined"] = 0
+        request.session["mail_review_errors"] = 0
+        return redirect(reverse("admin:mailing_mail_review"))
+
+    def review_mail_view(self, request):
+        queue = request.session.get("mail_review_queue", [])
+        changelist_url = reverse("admin:mailing_mailmodel_changelist")
+
+        if not queue:
+            self._add_review_summary(request)
+            return redirect(changelist_url)
+
+        current_uuid = queue[0]
+        mail = get_object_or_404(MailModel, uuid=current_uuid)
+
+        if request.method == "POST":
+            action = request.POST.get("action")
+
+            if action == "accept":
+                try:
+                    c_bus.dispatch(SendMail(mail_id=current_uuid))
+                    request.session["mail_review_sent"] = request.session.get("mail_review_sent", 0) + 1
+                except Exception as e:
+                    request.session["mail_review_errors"] = request.session.get("mail_review_errors", 0) + 1
+                    self.message_user(request, f"Error sending to {mail.contact}: {type(e).__name__}: {e}", level="error")
+                queue.pop(0)
+                request.session["mail_review_queue"] = queue
+                request.session.modified = True
+                return redirect(reverse("admin:mailing_mail_review"))
+
+            elif action == "decline":
+                queue.pop(0)
+                request.session["mail_review_queue"] = queue
+                request.session["mail_review_declined"] = request.session.get("mail_review_declined", 0) + 1
+                request.session.modified = True
+                return redirect(reverse("admin:mailing_mail_review"))
+
+            elif action == "modify":
+                new_body = request.POST.get("body", mail.body)
+                MailModel.objects.filter(uuid=current_uuid).update(body=new_body)
+                return redirect(reverse("admin:mailing_mail_review"))
+
+            elif action == "accept_all":
+                for uid in list(queue):
+                    try:
+                        c_bus.dispatch(SendMail(mail_id=uid))
+                        request.session["mail_review_sent"] = request.session.get("mail_review_sent", 0) + 1
+                    except Exception as e:
+                        m = get_object_or_404(MailModel, uuid=uid)
+                        request.session["mail_review_errors"] = request.session.get("mail_review_errors", 0) + 1
+                        self.message_user(request, f"Error sending to {m.contact}: {type(e).__name__}: {e}", level="error")
+                request.session["mail_review_queue"] = []
+                request.session.modified = True
+                self._add_review_summary(request)
+                return redirect(changelist_url)
+
+        rendered_body = render_body_with_inline_images(mail.body, mail.images, IMG_DIR)
+        return render(request, "mailing/review-mail.html", {
+            "mail": mail,
+            "rendered_body": rendered_body,
+            "queue_length": len(queue),
+        })
+
+    def _add_review_summary(self, request):
+        sent = request.session.pop("mail_review_sent", 0)
+        declined = request.session.pop("mail_review_declined", 0)
+        errors = request.session.pop("mail_review_errors", 0)
+        request.session.pop("mail_review_queue", None)
+        self.message_user(request, f"Review done: {sent} sent, {declined} declined, {errors} error(s).")
 
