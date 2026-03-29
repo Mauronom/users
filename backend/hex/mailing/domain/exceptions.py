@@ -6,3 +6,9 @@ class ContactNotFound(Exception):
 
 class TemplateNotFound(Exception):
     pass
+
+class MailNotFound(Exception):
+    pass
+
+class MailAlreadySent(Exception):
+    pass

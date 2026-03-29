@@ -143,6 +143,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
+GMAIL_CREDENTIALS_PATH = BASE_DIR / "credentials.json"
+GMAIL_TOKEN_PATH = BASE_DIR / "token.json"
+
 from hex.users.infra import QueryBus, CommandBus, init_buses, c_bus, q_bus
 
 

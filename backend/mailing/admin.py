@@ -12,7 +12,7 @@ from import_export.admin import ImportExportModelAdmin
 from import_export.forms import ImportForm
 from django import forms
 from .forms import SelectTemplateForm
-from hex.mailing.app import CreateMail
+from hex.mailing.app import CreateMail, SendMail
 from hex.mailing.infra import c_bus
 
 @admin.action(description="Create initial mail")
@@ -97,9 +97,25 @@ class TemplateAdmin(SummernoteModelAdmin):
     summernote_fields = ['body',]
 
 
+@admin.action(description="Send mails")
+def send_mails(modeladmin, request, queryset):
+    ok = 0
+    errors = 0
+    for mail in queryset:
+        try:
+            c_bus.dispatch(SendMail(mail_id=mail.uuid))
+            ok += 1
+        except Exception as e:
+            errors += 1
+            modeladmin.message_user(request, f"Error sending {mail.uuid} to {mail.contact.mail}: {type(e).__name__}: {e}", level="error")
+    if ok:
+        modeladmin.message_user(request, f"{ok} mail(s) sent successfully.")
+
+
 @admin.register(MailModel)
 class MailAdmin(SummernoteModelAdmin):
     list_display = ["subject","contact", "status", "send_date"]
     list_filter = ["status"]
     summernote_fields = ['body',]
+    actions = [send_mails]
 
