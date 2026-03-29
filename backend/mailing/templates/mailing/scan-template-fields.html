@@ -1,0 +1,54 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Scan template fields ({{ queue_length }} remaining): {{ template.subject }}</h1>
+<form method="post">
+    {% csrf_token %}
+
+    {% if sub_pairs %}
+    <h2>Substitutions</h2>
+    <p>Map each <code>{placeholder}</code> to a ContactModel field.</p>
+    <table>
+        <tr><th>Placeholder</th><th>Contact field</th></tr>
+        {% for var, current in sub_pairs %}
+        <tr>
+            <td><code>{{ '{' }}{{ var }}{{ '}' }}</code></td>
+            <td>
+                <select name="sub_{{ var }}">
+                    {% for field in contact_fields %}
+                    <option value="{{ field }}" {% if field == current %}selected{% endif %}>{{ field }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if cid_pairs %}
+    <h2>CID Images</h2>
+    <p>Map each embedded image to a file in <code>mailing/img/</code>.</p>
+    <table>
+        <tr><th>CID</th><th>Image file</th></tr>
+        {% for cid, current in cid_pairs %}
+        <tr>
+            <td><code>cid:{{ cid }}</code></td>
+            <td>
+                <select name="cid_{{ cid }}">
+                    <option value="" {% if not current %}selected{% endif %}>(none)</option>
+                    {% for img in img_files %}
+                    <option value="{{ img }}" {% if img == current %}selected{% endif %}>{{ img }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
+    {% if not sub_pairs and not cid_pairs %}
+    <p>No substitution placeholders or CID images found in this template body.</p>
+    {% endif %}
+
+    <p><input type="submit" value="Save &amp; next" class="button default"></p>
+</form>
+{% endblock %}

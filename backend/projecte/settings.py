@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'mailing',
     'django_extensions',
     'django_summernote',
+    'investigation',
 ]
 
 MIDDLEWARE = [
@@ -156,3 +157,6 @@ print('inicialitzant busos...fet')
 from hex.mailing.infra import init_buses as mailing_init_buses
 from hex.mailing.infra import c_bus as mailing_c_bus, q_bus as mailing_q_bus
 mailing_init_buses(mailing_c_bus, mailing_q_bus)
+
+from hex.investigation.infra.buses import init_buses as investigation_init_buses, i_bus
+investigation_init_buses(i_bus)

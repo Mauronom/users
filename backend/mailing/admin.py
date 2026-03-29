@@ -104,14 +104,92 @@ class TemplateAdmin(SummernoteModelAdmin):
     list_display = ["subject"]
     summernote_fields = ['body',]
     change_list_template = "mailing/template_changelist.html"
+    actions = ["scan_template_fields", "preview_templates"]
+
+    @admin.action(description="Scan substitutions & images")
+    def scan_template_fields(self, request, queryset):
+        uuids = list(queryset.values_list("uuid", flat=True))
+        request.session["template_scan_queue"] = uuids
+        return redirect(reverse("admin:mailing_template_scan"))
+
+    @admin.action(description="Preview templates")
+    def preview_templates(self, request, queryset):
+        uuids = list(queryset.values_list("uuid", flat=True))
+        request.session["template_preview_queue"] = uuids
+        return redirect(reverse("admin:mailing_template_preview"))
 
     def get_urls(self):
         urls = super().get_urls()
         custom = [
+            path("scan/", self.admin_site.admin_view(self.scan_template_fields_view), name="mailing_template_scan"),
+            path("preview/", self.admin_site.admin_view(self.preview_template_view), name="mailing_template_preview"),
             path("create-from-html/", self.admin_site.admin_view(self.select_html_view), name="mailing_template_create_from_html"),
             path("create-from-html/map/", self.admin_site.admin_view(self.map_fields_view), name="mailing_template_map_fields"),
         ]
         return custom + urls
+
+    def scan_template_fields_view(self, request):
+        queue = request.session.get("template_scan_queue", [])
+        changelist_url = reverse("admin:mailing_templatemodel_changelist")
+
+        if not queue:
+            return redirect(changelist_url)
+
+        current_uuid = queue[0]
+        template = get_object_or_404(TemplateModel, uuid=current_uuid)
+        substitutions = sorted(extract_substitutions(template.body))
+        cids = sorted(extract_cids(template.body))
+        img_files = sorted(os.listdir(IMG_DIR)) if os.path.isdir(IMG_DIR) else []
+
+        if request.method == "POST":
+            sub_map = {var: request.POST[f"sub_{var}"] for var in substitutions}
+            img_map = {cid: request.POST[f"cid_{cid}"] for cid in cids if request.POST.get(f"cid_{cid}")}
+            TemplateModel.objects.filter(uuid=current_uuid).update(substitutions=sub_map, images=img_map)
+            self.message_user(request, f"Updated fields for '{template.subject}'.")
+            queue.pop(0)
+            request.session["template_scan_queue"] = queue
+            request.session.modified = True
+            return redirect(reverse("admin:mailing_template_scan"))
+
+        # pass (placeholder, current_value) so template can pre-select
+        sub_pairs = [(var, template.substitutions.get(var, "")) for var in substitutions]
+        cid_pairs = [(cid, template.images.get(cid, "")) for cid in cids]
+
+        return render(request, "mailing/scan-template-fields.html", {
+            "template": template,
+            "sub_pairs": sub_pairs,
+            "cid_pairs": cid_pairs,
+            "contact_fields": CONTACT_FIELDS,
+            "img_files": img_files,
+            "queue_length": len(queue),
+        })
+
+    def preview_template_view(self, request):
+        queue = request.session.get("template_preview_queue", [])
+        changelist_url = reverse("admin:mailing_templatemodel_changelist")
+
+        if not queue:
+            return redirect(changelist_url)
+
+        current_uuid = queue[0]
+        template = get_object_or_404(TemplateModel, uuid=current_uuid)
+
+        if request.method == "POST":
+            action = request.POST.get("action")
+            if action == "next":
+                queue.pop(0)
+                request.session["template_preview_queue"] = queue
+                request.session.modified = True
+            elif action == "done":
+                request.session.pop("template_preview_queue", None)
+            return redirect(reverse("admin:mailing_template_preview"))
+
+        rendered_body = render_body_with_inline_images(template.body, template.images, IMG_DIR)
+        return render(request, "mailing/review-template.html", {
+            "template": template,
+            "rendered_body": rendered_body,
+            "queue_length": len(queue),
+        })
 
     def select_html_view(self, request):
         if request.method == "POST":

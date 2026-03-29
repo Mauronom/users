@@ -1,0 +1,31 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Preview template ({{ queue_length }} remaining): {{ template.subject }}</h1>
+{% if template.substitutions %}
+<p><strong>Substitutions:</strong>
+  {% for k, v in template.substitutions.items %}
+    <code>{{ k }}</code> → <em>{{ v }}</em>{% if not forloop.last %}, {% endif %}
+  {% endfor %}
+</p>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+  <div style="display:flex; gap:8px; margin-bottom:16px;">
+    {% if queue_length > 1 %}
+    <button type="submit" name="action" value="next" class="button">Next</button>
+    {% endif %}
+    <button type="submit" name="action" value="done" class="button default">Done</button>
+  </div>
+</form>
+
+<div style="border:1px solid #ccc; border-radius:4px; overflow:hidden;">
+  <iframe id="preview" style="width:100%; height:600px; border:none;"></iframe>
+</div>
+
+<script>
+(function () {
+  document.getElementById('preview').srcdoc = `{{ rendered_body|escapejs }}`;
+})();
+</script>
+{% endblock %}

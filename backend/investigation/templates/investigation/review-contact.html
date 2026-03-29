@@ -1,0 +1,52 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Review contact ({{ queue_length }} remaining): {{ contact.nom }}</h1>
+
+<form method="post" id="review-form">
+  {% csrf_token %}
+  <div style="display:flex; gap:8px; margin-bottom:16px;">
+    <button type="submit" name="action" value="approve" class="button default">Approve</button>
+    <button type="submit" name="action" value="reject" class="button">Reject</button>
+    <button type="submit" name="action" value="reject_blacklist" class="button">Reject + Blacklist</button>
+    <button type="submit" name="action" value="skip" class="button">Skip</button>
+    <button type="button" id="toggle-modify" class="button">Modify</button>
+  </div>
+
+  <div id="modify-section" style="display:none; margin-bottom:16px; background:#f8f8f8; padding:12px; border-radius:4px;">
+    <h3>Edit fields</h3>
+    <table>
+      <tr><td><label>Nom:</label></td><td><input name="nom" value="{{ contact.nom }}" style="width:400px;"></td></tr>
+      <tr><td><label>Mail:</label></td><td><input name="mail" value="{{ contact.mail }}" style="width:400px;"></td></tr>
+      <tr><td><label>Web:</label></td><td><input name="web" value="{{ contact.web }}" style="width:400px;"></td></tr>
+      <tr><td><label>Persona contacte:</label></td><td><input name="persona_contacte" value="{{ contact.persona_contacte }}" style="width:400px;"></td></tr>
+      <tr><td><label>Telèfon:</label></td><td><input name="telefon" value="{{ contact.telefon }}" style="width:400px;"></td></tr>
+      <tr><td><label>Idioma:</label></td><td><input name="idioma" value="{{ contact.idioma }}" style="width:100px;"></td></tr>
+      <tr><td><label>Notes:</label></td><td><textarea name="notes" rows="4" style="width:400px;">{{ contact.notes }}</textarea></td></tr>
+    </table>
+    <button type="submit" name="action" value="modify" class="button default" style="margin-top:8px;">Save changes</button>
+  </div>
+</form>
+
+<table style="border-collapse:collapse; width:100%; max-width:800px;">
+  <tr><th style="text-align:left; padding:6px 12px; background:#f0f0f0;">Field</th><th style="text-align:left; padding:6px 12px; background:#f0f0f0;">Value</th></tr>
+  <tr><td style="padding:6px 12px;"><strong>Nom</strong></td><td style="padding:6px 12px;">{{ contact.nom }}</td></tr>
+  <tr><td style="padding:6px 12px;"><strong>Mail</strong></td><td style="padding:6px 12px;"><a href="mailto:{{ contact.mail }}">{{ contact.mail }}</a></td></tr>
+  <tr><td style="padding:6px 12px;"><strong>Web</strong></td><td style="padding:6px 12px;">{% if contact.web %}<a href="{{ contact.web }}" target="_blank">{{ contact.web }}</a>{% endif %}</td></tr>
+  <tr><td style="padding:6px 12px;"><strong>Persona contacte</strong></td><td style="padding:6px 12px;">{{ contact.persona_contacte }}</td></tr>
+  <tr><td style="padding:6px 12px;"><strong>Telèfon</strong></td><td style="padding:6px 12px;">{{ contact.telefon }}</td></tr>
+  <tr><td style="padding:6px 12px;"><strong>Idioma</strong></td><td style="padding:6px 12px;">{{ contact.idioma }}</td></tr>
+  <tr><td style="padding:6px 12px;"><strong>Notes</strong></td><td style="padding:6px 12px;">{{ contact.notes }}</td></tr>
+  <tr><td style="padding:6px 12px;"><strong>Source clue</strong></td><td style="padding:6px 12px;"><em>{{ contact.source_clue }}</em></td></tr>
+  <tr><td style="padding:6px 12px;"><strong>Status</strong></td><td style="padding:6px 12px;">{{ contact.status }}</td></tr>
+</table>
+
+<script>
+(function () {
+  var btn = document.getElementById('toggle-modify');
+  var sec = document.getElementById('modify-section');
+  btn.addEventListener('click', function () {
+    sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+  });
+})();
+</script>
+{% endblock %}
