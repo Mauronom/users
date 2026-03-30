@@ -9,7 +9,7 @@ from hex.investigation.infra.buses import i_bus
 
 @admin.register(ClueModel)
 class ClueAdmin(admin.ModelAdmin):
-    list_display = ["clue_truncated", "status", "type", "score", "times_returned", "source_clue_text"]
+    list_display = ["clue_truncated", "status", "type", "score", "times_returned","created_at"]
     list_filter = ["status", "type"]
     search_fields = ["clue"]
     actions = ["mark_blacklisted", "reset_to_pending"]

@@ -83,6 +83,8 @@ class DjangoCluesRepo(CluesRepo):
                 "score": clue.score,
                 "source_clue_text": clue.source_clue,
                 "times_returned": clue.times_returned,
+                "summary": clue.summary,
+                "web": clue.web,
             },
         )
 
@@ -117,6 +119,8 @@ class DjangoCluesRepo(CluesRepo):
             score=obj.score,
             source_clue=obj.source_clue_text or "",
             times_returned=obj.times_returned,
+            summary=obj.summary or "",
+            web=obj.web or "",
         )
 
 

@@ -9,10 +9,12 @@ from hex.investigation.app.extract_contact import ExtractContact, ExtractContact
 class FakeAgent(InvestigationAgentPort):
     def __init__(self, extract_result=None):
         self._result = extract_result or ExtractResult(nom="Paupaterres", mail="info@paupaterres.cat")
+        self.extract_calls = []
 
     def classify(self, clue, top_returned): pass
 
-    def extract(self, clue):
+    def extract(self, clue, summary="", web=""):
+        self.extract_calls.append((clue, summary, web))
         return self._result
 
 
@@ -82,6 +84,19 @@ def test_extract_new_clues_upserted():
     h.execute(ExtractContact(clue_text="Paupaterres"))
 
     assert repo.find_by_clue_text("La Mirona") is not None
+
+
+def test_extract_passes_summary_and_web_from_clue_to_agent():
+    from hex.investigation.domain import ClueType
+    clue = Clue(clue="Paupaterres", type=ClueType.entity, summary="Festival de folk a Vic", web="paupaterres.cat")
+    repo = MemoryCluesRepo([clue])
+    agent = FakeAgent()
+    h = ExtractContactHandler(repo, MemoryContactsForReviewRepo(), MemoryBlacklistRepo(), agent)
+    h.execute(ExtractContact(clue_text="Paupaterres"))
+
+    _, summary, web = agent.extract_calls[0]
+    assert summary == "Festival de folk a Vic"
+    assert web == "paupaterres.cat"
 
 
 def test_extract_source_clue_recorded():

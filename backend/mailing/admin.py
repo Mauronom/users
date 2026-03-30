@@ -90,13 +90,24 @@ class ContactResource(resources.ModelResource):
         for key in keys_to_remove:
             del row[key]
 
+@admin.action(description="Mark as relevant")
+def mark_as_relevant(modeladmin, request, queryset):
+    for contact in queryset:
+        contact.relevant = True
+
+@admin.action(description="Mark as irrelevant")
+def mark_as_irrelevant(modeladmin, request, queryset):
+    for contact in queryset:
+        contact.relevant = False
+
+
 @admin.register(ContactModel)
 class ContactAdmin(ImportExportModelAdmin):
     resource_class = ContactResource
     import_form_class = ContactImportForm
     list_display = ["nom", "mail", "idioma", "data_enviat"]
     search_fields = ["nom", "mail"]
-    actions = [create_initial_mail, create_email_from_template]
+    actions = [create_initial_mail, create_email_from_template, mark_as_relevant, mark_as_irrelevant]
     
 
 @admin.register(TemplateModel)

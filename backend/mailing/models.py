@@ -12,6 +12,7 @@ class ContactModel(models.Model):
     data_enviat = models.DateField(null=True, blank=True)
     idioma = models.CharField(max_length=16, blank=True)
     tags = models.CharField(max_length=255, blank=True)
+    relevant = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.nom} <{self.mail}>"

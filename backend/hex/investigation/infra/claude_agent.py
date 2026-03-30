@@ -21,9 +21,9 @@ TIPUS possibles:
 - unknown: no classificable o irrelevant
 
 Si és "entity": extreu nom (SENSE prefix "Sala"/"Festival"/"Teatre"), mail, web, telefon, persona_contacte, notes, idioma de contacte.
-Si és "scout": busca el seu historial de concerts (Songkick, Instagram, Bandcamp) dels últims 2 anys.
+Si és "scout": busca el seu historial de concerts (Songkick, Instagram, Bandcamp, pàgina web) dels últims 2 anys.
 
-A "new_clues": noms de venues/festivals/bookings trobats. Prioritza llocs PETITS i EMERGENTS.
+A "new_clues": noms de venues/festivals/bookings trobats. Prioritza llocs PETITS i EMERGENTS. També retorna altres scouts (altres bandes emergents que puguin servir per trobar més espais)
 IMPORTANT - mai suggereixis: """ + ", ".join(_HARDCODED_BLACKLIST) + """
 
 NOM: mai ussis prefixos com "Sala", "Festival", "Teatre". Exemple: "Paupaterres" no "Festival Paupaterres".
@@ -43,6 +43,7 @@ _CLASSIFY_SCHEMA = {
     "type": "object",
     "properties": {
         "type": {"type": "string", "enum": ["scout", "entity", "unknown"]},
+        "summary": {"type": ["string", "null"]},
         "nom": {"type": ["string", "null"]},
         "mail": {"type": ["string", "null"]},
         "web": {"type": ["string", "null"]},
@@ -117,6 +118,7 @@ class ClaudeCliAgent(InvestigationAgentPort):
         return ClassifyResult(
             type=data.get("type", "unknown"),
             new_clues=new_clues,
+            summary=data.get("summary"),
             nom=data.get("nom"),
             mail=data.get("mail"),
             web=data.get("web"),
@@ -126,8 +128,14 @@ class ClaudeCliAgent(InvestigationAgentPort):
             idioma=data.get("idioma"),
         )
 
-    def extract(self, clue: str) -> ExtractResult:
-        prompt = f'Extreu informació de contacte per a: "{clue}". Respon ÚNICAMENT amb JSON vàlid.'
+    def extract(self, clue: str, summary: str = "", web: str = "") -> ExtractResult:
+        context_parts = []
+        if summary:
+            context_parts.append(f"Informació prèvia: {summary}.")
+        if web:
+            context_parts.append(f"Web coneguda: {web}.")
+        context = (" " + " ".join(context_parts)) if context_parts else ""
+        prompt = f'Extreu informació de contacte per a: "{clue}".{context} Respon ÚNICAMENT amb JSON vàlid.'
         raw = self._run(prompt, _EXTRACT_SYSTEM, _EXTRACT_SCHEMA)
         data = self._parse(raw)
         new_clues = [NewClue(c["clue"], int(c.get("score", 5))) for c in data.get("new_clues", [])]
@@ -152,8 +160,7 @@ class ClaudeCliAgent(InvestigationAgentPort):
             "--system-prompt", system,
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-        combined = (result.stdout + result.stderr).lower()
-        if any(sig in combined for sig in _RATE_LIMIT_SIGNALS):
+        if any(sig in result.stderr.lower() for sig in _RATE_LIMIT_SIGNALS):
             raise RateLimitError("Claude CLI rate limited")
         if result.returncode != 0:
             raise RuntimeError(f"claude CLI error (rc={result.returncode}): {result.stderr[:300]}")

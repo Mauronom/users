@@ -18,7 +18,12 @@ class ExtractContactHandler:
         self.agent = agent
 
     def execute(self, cmd):
-        result = self.agent.extract(cmd.clue_text)
+        clue_obj = self.clues_repo.find_by_clue_text(cmd.clue_text)
+        result = self.agent.extract(
+            cmd.clue_text,
+            summary=clue_obj.summary if clue_obj else "",
+            web=clue_obj.web if clue_obj else "",
+        )
 
         status = self._determine_status(result.nom, result.mail)
 

@@ -13,6 +13,7 @@ class NewClue:
 class ClassifyResult:
     type: str  # "scout" | "entity" | "unknown"
     new_clues: list = field(default_factory=list)  # list of NewClue
+    summary: Optional[str] = None
     # contact info (populated when type == "entity" and agent found it)
     nom: Optional[str] = None
     mail: Optional[str] = None
@@ -40,4 +41,4 @@ class InvestigationAgentPort(ABC):
     def classify(self, clue: str, top_returned: list[str]) -> ClassifyResult: pass
 
     @abstractmethod
-    def extract(self, clue: str) -> ExtractResult: pass
+    def extract(self, clue: str, summary: str = "", web: str = "") -> ExtractResult: pass

@@ -24,6 +24,8 @@ class ClassifyClueHandler:
         clue = self.clues_repo.find_by_clue_text(cmd.clue_text)
         clue.type = ClueType(result.type) if result.type in ClueType._value2member_map_ else ClueType.unknown
         clue.status = ClueStatus.done
+        clue.summary = result.summary or ""
+        clue.web = result.web or ""
         self.clues_repo.save(clue)
 
         self._upsert_new_clues(result.new_clues, cmd.clue_text)

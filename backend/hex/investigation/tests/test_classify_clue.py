@@ -107,6 +107,26 @@ def test_classify_entity_with_contact_info_creates_contact_for_review():
     assert cfr_repo.exists_by_mail("info@paupaterres.cat")
 
 
+def test_classify_saves_summary_to_clue():
+    clue = make_clue("Xarim Aresté")
+    repo = MemoryCluesRepo([clue])
+    agent = FakeAgent(ClassifyResult(type="scout", summary="Cantautor català del circuit indie"))
+    h = ClassifyClueHandler(repo, MemoryContactsForReviewRepo(), MemoryBlacklistRepo(), agent)
+    h.execute(ClassifyClue(clue_text="Xarim Aresté"))
+
+    assert repo.find_by_clue_text("Xarim Aresté").summary == "Cantautor català del circuit indie"
+
+
+def test_classify_saves_web_to_clue():
+    clue = make_clue("Paupaterres")
+    repo = MemoryCluesRepo([clue])
+    agent = FakeAgent(ClassifyResult(type="entity", web="paupaterres.cat"))
+    h = ClassifyClueHandler(repo, MemoryContactsForReviewRepo(), MemoryBlacklistRepo(), agent)
+    h.execute(ClassifyClue(clue_text="Paupaterres"))
+
+    assert repo.find_by_clue_text("Paupaterres").web == "paupaterres.cat"
+
+
 def test_classify_entity_duplicate_mail_not_added_twice():
     from hex.investigation.domain import ContactForReview
     clue = make_clue("Paupaterres")

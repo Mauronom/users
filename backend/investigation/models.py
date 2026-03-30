@@ -16,8 +16,10 @@ class ClueModel(models.Model):
     ]
     clue = models.TextField(unique=True)
     status = models.CharField(max_length=16, choices=STATUS, default="pending")
-    type = models.CharField(max_length=16, choices=TYPE, default="unknown")
-    score = models.IntegerField(default=5)
+    type = models.CharField(max_length=16, choices=TYPE, default="scout")
+    score = models.IntegerField(default=10)
+    summary = models.TextField(blank=True, default="")
+    web = models.CharField(max_length=512, blank=True, default="")
     source_clue_text = models.TextField(blank=True, default="")
     times_returned = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
