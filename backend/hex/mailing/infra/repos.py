@@ -115,7 +115,7 @@ class FsCidImageRepo(CidImageRepoPort):
 
     def find(self, cid_name: str) -> bytes:
         for f in self.img_dir.iterdir():
-            if f.stem == cid_name:
+            if f.name == cid_name:
                 return f.read_bytes()
         return None
 

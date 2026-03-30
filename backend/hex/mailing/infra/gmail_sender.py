@@ -70,10 +70,14 @@ class GmailSender(MailSenderPort):
             message["subject"] = mail.subject
             message.attach(MIMEText(mail.body, "html"))
             for cid, img_bytes in (mail.images or {}).items():
+                print(cid)
+                print("MimeType")
                 img = MIMEImage(img_bytes)
                 img.add_header("Content-ID", f"<{cid}>")
                 img.add_header("Content-Disposition", "inline")
+                print("attachbefore")
                 message.attach(img)
+                print("attachafter")
             for name, data in (mail.attachments or []):
                 part = MIMEBase("application", "octet-stream")
                 part.set_payload(data)

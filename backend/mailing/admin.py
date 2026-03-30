@@ -106,7 +106,7 @@ class ContactAdmin(ImportExportModelAdmin):
     resource_class = ContactResource
     import_form_class = ContactImportForm
     list_display = ["nom", "mail", "idioma", "data_enviat"]
-    search_fields = ["nom", "mail"]
+    search_fields = ["nom", "mail","tags",]
     actions = [create_initial_mail, create_email_from_template, mark_as_relevant, mark_as_irrelevant]
     
 

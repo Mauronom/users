@@ -44,7 +44,12 @@ class SendMailHandler:
             return mail
         resolved = mail.clone()
         if self.cid_image_repo and mail.images:
-            resolved.images = {cid: self.cid_image_repo.find(cid) for cid in mail.images}
+            print(type(mail.images))
+            print("From FsCidImageRepo: cids")
+            
+            for cid in mail.images.values():
+                print(cid)
+            resolved.images = {cid: self.cid_image_repo.find(path) for (cid,path) in mail.images.items()}
         if self.attachment_repo and mail.attachments:
             resolved.attachments = [self.attachment_repo.find(path) for path in mail.attachments]
         return resolved
