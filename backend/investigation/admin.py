@@ -36,7 +36,7 @@ class ContactForReviewAdmin(admin.ModelAdmin):
 
     @admin.action(description="Review contacts")
     def review_contacts(self, request, queryset):
-        uuids = list(queryset.values_list("uuid", flat=True))
+        uuids = list(queryset.filter(status="pending").values_list("uuid", flat=True))
         request.session["cfr_review_queue"] = uuids
         request.session["cfr_review_approved"] = 0
         request.session["cfr_review_rejected"] = 0

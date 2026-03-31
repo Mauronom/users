@@ -99,6 +99,16 @@ def test_extract_passes_summary_and_web_from_clue_to_agent():
     assert web == "paupaterres.cat"
 
 
+def test_extract_marks_clue_as_done():
+    from hex.investigation.domain import ClueStatus
+    repo = MemoryCluesRepo([make_entity_clue()])
+    h = ExtractContactHandler(repo, MemoryContactsForReviewRepo(), MemoryBlacklistRepo(), FakeAgent())
+    h.execute(ExtractContact(clue_text="Paupaterres"))
+
+    clue = repo.find_by_clue_text("Paupaterres")
+    assert clue.status == ClueStatus.done
+
+
 def test_extract_source_clue_recorded():
     repo = MemoryCluesRepo([make_entity_clue()])
     cfr_repo = MemoryContactsForReviewRepo()
@@ -107,3 +117,12 @@ def test_extract_source_clue_recorded():
 
     contacts = cfr_repo.find_all()
     assert contacts[0].source_clue == "Paupaterres"
+
+
+def test_extract_saves_summary_to_clue():
+    agent = FakeAgent(ExtractResult(nom="Paupaterres", mail="info@paupaterres.cat", summary="Folk festival a Vic"))
+    repo = MemoryCluesRepo([make_entity_clue()])
+    h = ExtractContactHandler(repo, MemoryContactsForReviewRepo(), MemoryBlacklistRepo(), agent)
+    h.execute(ExtractContact(clue_text="Paupaterres"))
+
+    assert repo.find_by_clue_text("Paupaterres").summary == "Folk festival a Vic"

@@ -24,6 +24,12 @@ class ExtractContactHandler:
             summary=clue_obj.summary if clue_obj else "",
             web=clue_obj.web if clue_obj else "",
         )
+        print(f"[DEBUG extract handler] result.summary={result.summary!r}")
+
+        if clue_obj:
+            clue_obj.status = ClueStatus.done
+            clue_obj.summary = result.summary or ""
+            self.clues_repo.save(clue_obj)
 
         status = self._determine_status(result.nom, result.mail)
 

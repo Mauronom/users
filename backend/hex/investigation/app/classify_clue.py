@@ -20,6 +20,7 @@ class ClassifyClueHandler:
     def execute(self, cmd):
         top_returned = [c.clue for c in self.clues_repo.find_top_returned(self.top_n)]
         result = self.agent.classify(cmd.clue_text, top_returned)
+        print(f"[DEBUG classify handler] result.summary={result.summary!r}")
 
         clue = self.clues_repo.find_by_clue_text(cmd.clue_text)
         clue.type = ClueType(result.type) if result.type in ClueType._value2member_map_ else ClueType.unknown

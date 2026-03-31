@@ -63,13 +63,13 @@ _CLASSIFY_SCHEMA = {
             },
         },
     },
-    "required": ["type", "new_clues"],
+    "required": ["type", "new_clues", "summary"],
 }
 
 _EXTRACT_SYSTEM = """Ets un agent de recerca per a una banda de rock alternatiu en CATALÀ que acaba de començar.
 Tenim 0 seguidors, 0 actuacions, cap segell ni booking. Busquem el mail/contacte d'aquesta entitat.
 
-Extreu: nom (SENSE prefix), mail de booking/programació (preferent al genèric), web, telefon, persona_contacte, notes, idioma.
+Extreu: nom (SENSE prefix), mail de booking/programació (preferent al genèric), web, telefon, persona_contacte, notes, idioma, summary (1-2 frases descrivint l'entitat).
 
 IMPORTANT: Respon ÚNICAMENT amb JSON vàlid. Zero text addicional."""
 
@@ -83,6 +83,7 @@ _EXTRACT_SCHEMA = {
         "telefon": {"type": ["string", "null"]},
         "notes": {"type": ["string", "null"]},
         "idioma": {"type": ["string", "null"]},
+        "summary": {"type": ["string", "null"]},
         "new_clues": {
             "type": "array",
             "items": {
@@ -114,6 +115,7 @@ class ClaudeCliAgent(InvestigationAgentPort):
         )
         raw = self._run(prompt, _CLASSIFY_SYSTEM, _CLASSIFY_SCHEMA)
         data = self._parse(raw)
+        print(f"[DEBUG classify] data summary={data.get('summary')!r}")
         new_clues = [NewClue(c["clue"], int(c.get("score", 5))) for c in data.get("new_clues", [])]
         return ClassifyResult(
             type=data.get("type", "unknown"),
@@ -138,6 +140,7 @@ class ClaudeCliAgent(InvestigationAgentPort):
         prompt = f'Extreu informació de contacte per a: "{clue}".{context} Respon ÚNICAMENT amb JSON vàlid.'
         raw = self._run(prompt, _EXTRACT_SYSTEM, _EXTRACT_SCHEMA)
         data = self._parse(raw)
+        print(f"[DEBUG extract] data summary={data.get('summary')!r}")
         new_clues = [NewClue(c["clue"], int(c.get("score", 5))) for c in data.get("new_clues", [])]
         return ExtractResult(
             nom=data.get("nom", clue),
@@ -147,6 +150,7 @@ class ClaudeCliAgent(InvestigationAgentPort):
             telefon=data.get("telefon") or "",
             notes=data.get("notes") or "",
             idioma=data.get("idioma") or "",
+            summary=data.get("summary") or "",
             new_clues=new_clues,
         )
 
@@ -155,11 +159,12 @@ class ClaudeCliAgent(InvestigationAgentPort):
             "claude", "-p", prompt,
             "--model", self.model,
             "--output-format", "json",
+            "--max-turns", "5",
             "--json-schema", json.dumps(schema),
             "--allowedTools", "WebSearch",
             "--system-prompt", system,
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
         if any(sig in result.stderr.lower() for sig in _RATE_LIMIT_SIGNALS):
             raise RateLimitError("Claude CLI rate limited")
         if result.returncode != 0:
@@ -169,21 +174,29 @@ class ClaudeCliAgent(InvestigationAgentPort):
     def _parse(self, raw: str) -> dict:
         import ast
         raw = raw.strip()
+        print(f"[DEBUG _parse] raw[:400]: {raw[:400]}")
         for key in ("structured_output", "result"):
             try:
                 outer = json.loads(raw)
                 inner = outer.get(key)
                 if isinstance(inner, dict):
+                    print(f"[DEBUG _parse] found via key={key!r}: keys={list(inner.keys())}, summary={inner.get('summary')!r}")
                     return inner
                 if isinstance(inner, str):
                     try:
-                        return json.loads(inner)
+                        parsed = json.loads(inner)
+                        print(f"[DEBUG _parse] found str via key={key!r}: keys={list(parsed.keys())}, summary={parsed.get('summary')!r}")
+                        return parsed
                     except Exception:
-                        return ast.literal_eval(inner)
+                        parsed = ast.literal_eval(inner)
+                        print(f"[DEBUG _parse] found ast via key={key!r}: keys={list(parsed.keys())}, summary={parsed.get('summary')!r}")
+                        return parsed
             except Exception:
                 pass
         try:
-            return json.loads(raw)
+            parsed = json.loads(raw)
+            print(f"[DEBUG _parse] found direct json: keys={list(parsed.keys())}, summary={parsed.get('summary')!r}")
+            return parsed
         except Exception:
             pass
         raise RuntimeError(f"unparseable agent output: {raw[:200]}")

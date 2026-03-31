@@ -33,6 +33,7 @@ class ExtractResult:
     telefon: str = ""
     notes: str = ""
     idioma: str = ""
+    summary: str = ""
     new_clues: list = field(default_factory=list)  # list of NewClue
 
 

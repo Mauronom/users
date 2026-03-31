@@ -281,6 +281,7 @@ class MailAdmin(SummernoteModelAdmin):
         request.session["mail_review_sent"] = 0
         request.session["mail_review_declined"] = 0
         request.session["mail_review_errors"] = 0
+        request.session["accepted_mails"] = []
         return redirect(reverse("admin:mailing_mail_review"))
 
     def review_mail_view(self, request):
@@ -288,6 +289,16 @@ class MailAdmin(SummernoteModelAdmin):
         changelist_url = reverse("admin:mailing_mailmodel_changelist")
 
         if not queue:
+
+            accepted_mails = request.session["accepted_mails"]
+            for uid in list(accepted_mails):
+                try:
+                    c_bus.dispatch(SendMail(mail_id=uid))
+                    request.session["mail_review_sent"] = request.session.get("mail_review_sent", 0) + 1
+                except Exception as e:
+                    m = get_object_or_404(MailModel, uuid=uid)
+                    request.session["mail_review_errors"] = request.session.get("mail_review_errors", 0) + 1
+                    self.message_user(request, f"Error sending to {m.contact}: {type(e).__name__}: {e}", level="error")
             self._add_review_summary(request)
             return redirect(changelist_url)
 
@@ -298,12 +309,7 @@ class MailAdmin(SummernoteModelAdmin):
             action = request.POST.get("action")
 
             if action == "accept":
-                try:
-                    c_bus.dispatch(SendMail(mail_id=current_uuid))
-                    request.session["mail_review_sent"] = request.session.get("mail_review_sent", 0) + 1
-                except Exception as e:
-                    request.session["mail_review_errors"] = request.session.get("mail_review_errors", 0) + 1
-                    self.message_user(request, f"Error sending to {mail.contact}: {type(e).__name__}: {e}", level="error")
+                request.session["accepted_mails"].append(current_uuid)
                 queue.pop(0)
                 request.session["mail_review_queue"] = queue
                 request.session.modified = True
@@ -322,18 +328,10 @@ class MailAdmin(SummernoteModelAdmin):
                 return redirect(reverse("admin:mailing_mail_review"))
 
             elif action == "accept_all":
-                for uid in list(queue):
-                    try:
-                        c_bus.dispatch(SendMail(mail_id=uid))
-                        request.session["mail_review_sent"] = request.session.get("mail_review_sent", 0) + 1
-                    except Exception as e:
-                        m = get_object_or_404(MailModel, uuid=uid)
-                        request.session["mail_review_errors"] = request.session.get("mail_review_errors", 0) + 1
-                        self.message_user(request, f"Error sending to {m.contact}: {type(e).__name__}: {e}", level="error")
+                request.session["accepted_mails"].extend([current_uuid] + queue[1:])
                 request.session["mail_review_queue"] = []
                 request.session.modified = True
-                self._add_review_summary(request)
-                return redirect(changelist_url)
+                return redirect(reverse("admin:mailing_mail_review"))
 
         rendered_body = render_body_with_inline_images(mail.body, mail.images, IMG_DIR)
         return render(request, "mailing/review-mail.html", {

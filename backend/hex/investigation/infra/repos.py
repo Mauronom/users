@@ -75,6 +75,7 @@ class MemoryBlacklistRepo(BlacklistRepo):
 class DjangoCluesRepo(CluesRepo):
     def save(self, clue):
         from investigation.models import ClueModel
+        print(f"[DEBUG repo.save] clue={clue.clue!r} summary={clue.summary!r}")
         ClueModel.objects.update_or_create(
             clue=clue.clue,
             defaults={
