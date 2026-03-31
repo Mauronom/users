@@ -1,0 +1,23 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Sending mails</h1>
+<pre id="log" style="background:#1a1a1a; color:#eee; padding:16px; border-radius:4px; font-family:monospace; font-size:13px; line-height:1.6; min-height:200px;"></pre>
+<p id="done-link" style="display:none; margin-top:12px;">
+  <a href="{{ changelist_url }}" class="button default">Back to mail list</a>
+</p>
+<script>
+(function () {
+  const log = document.getElementById('log');
+  const doneLink = document.getElementById('done-link');
+  const es = new EventSource('stream/');
+  es.addEventListener('result', function (e) {
+    log.textContent += e.data + '\n';
+  });
+  es.addEventListener('done', function () {
+    es.close();
+    doneLink.style.display = '';
+  });
+  es.onerror = function () { es.close(); };
+})();
+</script>
+{% endblock %}

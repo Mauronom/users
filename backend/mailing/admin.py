@@ -3,6 +3,7 @@ from django.contrib.admin import helpers
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import path, reverse
 from django.conf import settings
+from django.http import StreamingHttpResponse
 from hex.mailing.domain.mail import MailStatus
 from .models import ContactModel, TemplateModel, MailModel
 from django_summernote.admin import SummernoteModelAdmin
@@ -14,7 +15,7 @@ from import_export import resources, fields
 from import_export.admin import ImportExportModelAdmin
 from import_export.forms import ImportForm
 from django import forms
-from .forms import SelectTemplateForm
+from .forms import SelectTemplateForm, AddTagsForm
 from hex.mailing.app import CreateMail, SendMail, CreateTemplateFromHtml
 from hex.mailing.infra import c_bus
 from .html_utils import extract_substitutions, extract_cids, render_body_with_inline_images
@@ -41,6 +42,23 @@ def create_email_from_template(modeladmin, request, queryset):
             c_bus.dispatch(CreateMail(template_id=template.uuid, contact_id=contact.uuid))
         return None
     return render(request, 'mailing/select-template.html', {
+        'form': form,
+        'queryset': queryset,
+        'action_checkbox_name': helpers.ACTION_CHECKBOX_NAME,
+    })
+
+@admin.action(description="Add tags to contact")
+def add_tags(modeladmin, request, queryset):
+    form = AddTagsForm(request.POST or None)
+    print(request.POST)
+    if 'apply' in request.POST and form.is_valid():
+        tags = form.cleaned_data["tags"]
+        print(type(tags))
+        for contact in queryset:
+            contact.tags = contact.tags + tags
+            contact.save()
+        return None
+    return render(request, 'mailing/add-tags.html', {
         'form': form,
         'queryset': queryset,
         'action_checkbox_name': helpers.ACTION_CHECKBOX_NAME,
@@ -94,20 +112,22 @@ class ContactResource(resources.ModelResource):
 def mark_as_relevant(modeladmin, request, queryset):
     for contact in queryset:
         contact.relevant = True
+        contact.save()
 
 @admin.action(description="Mark as irrelevant")
 def mark_as_irrelevant(modeladmin, request, queryset):
     for contact in queryset:
         contact.relevant = False
+        contact.save()
 
 
 @admin.register(ContactModel)
 class ContactAdmin(ImportExportModelAdmin):
     resource_class = ContactResource
     import_form_class = ContactImportForm
-    list_display = ["nom", "mail", "idioma", "data_enviat"]
+    list_display = ["nom", "mail", "idioma", "data_enviat","tags"]
     search_fields = ["nom", "mail","tags",]
-    actions = [create_initial_mail, create_email_from_template, mark_as_relevant, mark_as_irrelevant]
+    actions = [create_initial_mail, create_email_from_template, mark_as_relevant, mark_as_irrelevant,add_tags]
     
 
 @admin.register(TemplateModel)
@@ -271,6 +291,8 @@ class MailAdmin(SummernoteModelAdmin):
         urls = super().get_urls()
         custom = [
             path("review/", self.admin_site.admin_view(self.review_mail_view), name="mailing_mail_review"),
+            path("sending/", self.admin_site.admin_view(self.sending_view), name="mailing_mail_sending"),
+            path("sending/stream/", self.admin_site.admin_view(self.sending_stream_view), name="mailing_mail_sending_stream"),
         ]
         return custom + urls
 
@@ -278,29 +300,17 @@ class MailAdmin(SummernoteModelAdmin):
     def send_mails(self, request, queryset):
         uuids = list(queryset.values_list("uuid", flat=True))
         request.session["mail_review_queue"] = uuids
-        request.session["mail_review_sent"] = 0
-        request.session["mail_review_declined"] = 0
-        request.session["mail_review_errors"] = 0
         request.session["accepted_mails"] = []
+        request.session["declined_mails"] = []
         return redirect(reverse("admin:mailing_mail_review"))
 
     def review_mail_view(self, request):
         queue = request.session.get("mail_review_queue", [])
-        changelist_url = reverse("admin:mailing_mailmodel_changelist")
 
         if not queue:
-
-            accepted_mails = request.session["accepted_mails"]
-            for uid in list(accepted_mails):
-                try:
-                    c_bus.dispatch(SendMail(mail_id=uid))
-                    request.session["mail_review_sent"] = request.session.get("mail_review_sent", 0) + 1
-                except Exception as e:
-                    m = get_object_or_404(MailModel, uuid=uid)
-                    request.session["mail_review_errors"] = request.session.get("mail_review_errors", 0) + 1
-                    self.message_user(request, f"Error sending to {m.contact}: {type(e).__name__}: {e}", level="error")
-            self._add_review_summary(request)
-            return redirect(changelist_url)
+            request.session.pop("mail_review_queue", None)
+            request.session.modified = True
+            return redirect(reverse("admin:mailing_mail_sending"))
 
         current_uuid = queue[0]
         mail = get_object_or_404(MailModel, uuid=current_uuid)
@@ -316,9 +326,9 @@ class MailAdmin(SummernoteModelAdmin):
                 return redirect(reverse("admin:mailing_mail_review"))
 
             elif action == "decline":
+                request.session["declined_mails"].append(current_uuid)
                 queue.pop(0)
                 request.session["mail_review_queue"] = queue
-                request.session["mail_review_declined"] = request.session.get("mail_review_declined", 0) + 1
                 request.session.modified = True
                 return redirect(reverse("admin:mailing_mail_review"))
 
@@ -340,10 +350,33 @@ class MailAdmin(SummernoteModelAdmin):
             "queue_length": len(queue),
         })
 
-    def _add_review_summary(self, request):
-        sent = request.session.pop("mail_review_sent", 0)
-        declined = request.session.pop("mail_review_declined", 0)
-        errors = request.session.pop("mail_review_errors", 0)
-        request.session.pop("mail_review_queue", None)
-        self.message_user(request, f"Review done: {sent} sent, {declined} declined, {errors} error(s).")
+    def sending_view(self, request):
+        return render(request, "mailing/sending.html", {
+            "changelist_url": reverse("admin:mailing_mailmodel_changelist"),
+        })
+
+    def sending_stream_view(self, request):
+        accepted = request.session.pop("accepted_mails", [])
+        declined = request.session.pop("declined_mails", [])
+        request.session.modified = True
+        request.session.save()
+
+        def generate():
+            for uid in accepted:
+                m = MailModel.objects.get(uuid=uid)
+                try:
+                    c_bus.dispatch(SendMail(mail_id=uid))
+                    line = f"{m.contact} | {m.subject}: sent"
+                except Exception as e:
+                    line = f"{m.contact} | {m.subject}: ERROR - {type(e).__name__}: {e}"
+                yield f"event: result\ndata: {line}\n\n"
+            for uid in declined:
+                m = MailModel.objects.get(uuid=uid)
+                yield f"event: result\ndata: {m.contact} | {m.subject}: declined\n\n"
+            yield "event: done\ndata: \n\n"
+
+        response = StreamingHttpResponse(generate(), content_type="text/event-stream")
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response
 
